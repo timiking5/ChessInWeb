@@ -1,7 +1,10 @@
-﻿public class Runner
+﻿using ChessLogic;
+
+public class Runner
 {
     public static void Main()
     {
-        Console.WriteLine("Hello World");
+        Board board = new();
+        board.LoadPositionFromFen(Util.StartingPos);
     }
 }
