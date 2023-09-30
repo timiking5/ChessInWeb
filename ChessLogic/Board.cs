@@ -13,17 +13,17 @@ public class Board
     public int[] Squares { get; private set; } = new int[64];
     public bool WhiteToMove;
     public int FiftyMoveCounter { get; set; } = 0;
-    public int PlysCounter { get ; set; } = 0;
+    public int PlysCounter { get; set; } = 0;
     public int[] KingSquares { get; set; }
     public bool WhiteCanCastleKing { get; set; }
-    public bool WhiteCanCastleQueen { get; set;}
-    public bool BlackCanCastleKing { get; set;}
-    public bool BlackCanCastleQueen { get; set;}
+    public bool WhiteCanCastleQueen { get; set; }
+    public bool BlackCanCastleKing { get; set; }
+    public bool BlackCanCastleQueen { get; set; }
     public int colourToMoveIndex { get; set; }
-    public PieceList[] Rooks {get ;set; }
-    public PieceList[] Bishops {get ;set; }
-    public PieceList[] Queens {get ;set; }
-    public PieceList[] Knights {get ;set; }
+    public PieceList[] Rooks { get; set; }
+    public PieceList[] Bishops { get; set; }
+    public PieceList[] Queens { get; set; }
+    public PieceList[] Knights { get; set; }
     public PieceList[] Pawns { get; set; }
     private int EnPassantCol = -1;  // tells if there is an opportunity to En Passant
     private static Dictionary<char, int> pieceTypeFromSymbol = new Dictionary<char, int>
@@ -35,6 +35,8 @@ public class Board
         ['b'] = Piece.Bishop,
         ['r'] = Piece.Rook
     };
+    public static int[] SlidingDirections = new int[] { -1, 1, -8, 8, -9, 9, -7, 7 };
+    public static int[] KnightMoves = new int[] { -17, 17, -15, 15, -6, 6, -10, 10 };
 
     public void LoadPositionFromFen(string fen)
     {
