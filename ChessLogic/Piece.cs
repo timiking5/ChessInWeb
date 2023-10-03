@@ -47,4 +47,8 @@ public static class Piece
     {
         return (piece & 0b100) != 0;
     }
+    public static bool IsKnight(int piece)
+    {
+        return (piece & 0b011) == Knight;
+    }
 }
