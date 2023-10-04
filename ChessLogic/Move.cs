@@ -35,4 +35,16 @@ public class Move
             }
         }
     }
+    public Move(int startIndex, int endIndex, int moveFlag)
+    {
+        StartIndex = startIndex;
+        EndIndex = endIndex;
+        MoveFlag = moveFlag;
+    }
+    public Move(int startIndex, int endIndex)
+    {
+        StartIndex = startIndex;
+        EndIndex = endIndex;
+        MoveFlag = 0;
+    }
 }

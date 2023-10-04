@@ -8,19 +8,44 @@ public class MoveGenerator
     private bool whiteToMove;
     private bool inCheck;
     private bool inDoubleCheck;
-    private bool inKnightCheck;
+    private int inKnightCheck = -1;
     public MoveGenerator(Board board)
     {
         this.board = board;
         whiteToMove = board.WhiteToMove;
     }
-    public List<Move> GenerateMoves()
+    private void Init()
     {
         inCheck = false;
         inDoubleCheck = false;
-        (var attackMask, var pins) = CreateAttackMap();
-
+        inKnightCheck = -1;
+    }
+    public List<Move> GenerateMoves()
+    {
+        Init();
+        (var attackMap, var pins) = CreateAttackMap();
         List<Move> moves = new();
+        if (inDoubleCheck)
+        {
+            moves.AddRange(GenerateKingMoves(attackMap));
+        }
+        return moves;
+    }
+
+    private List<Move> GenerateKingMoves(HashSet<int> attackMap)
+    {
+        int kingSquare = whiteToMove ? board.KingSquares[0] : board.KingSquares[1];
+        var moves = new List<Move>();
+        foreach (var direction in Board.SlidingDirections)
+        {
+            int move = kingSquare + direction;
+            if (Math.Abs(kingSquare % 8 - (move) % 8) > 1 || move < 0 
+                || move > 63 || attackMap.Contains(move))
+            {
+                continue;
+            }
+            moves.Add(new(kingSquare, move));
+        }
         return moves;
     }
 
@@ -46,7 +71,7 @@ public class MoveGenerator
         {  // knight attacks
             ExtendAttackMapKnights(attackMap, kingSquare, board.Knights[attackingPiecesInd]);
         }
-        SideAttacksMap(attackMap, attackingPiecesInd);
+        InDirectAttacksMap(attackMap, attackingPiecesInd);
         PawnAttacks(attackMap, kingSquare, attackingPiecesInd);  // i can probably put in SideAttacksMap but i don't feel like it
         return (attackMap, pins);
     }
@@ -77,7 +102,7 @@ public class MoveGenerator
         for (int i = startIndex; i < endIndex; i++)
         {
             int direction = Board.SlidingDirections[i];
-            int square = kingSquare;
+            int square = kingSquare + direction;
             attackedSquares.Add(kingSquare);
             int undefendedAttacker = -1;
             bool foundAttacker = false;
@@ -85,30 +110,43 @@ public class MoveGenerator
             while (0 <= square && square < 64)
             {
                 int piece = board.Squares[square];
+                if (piece == Piece.None)
+                {
+                    attackedSquares.Add(square);
+                    if (Math.Abs(square % 8 - (square + direction) % 8) > 1)
+                    {
+                        break;
+                    }
+                    square += direction;
+                    continue;
+                }
                 if (!Piece.IsColour(piece, attackingColour) && !foundAttacker)
                 {  // case 1
                     friendlyPiece = square;
                     attackedSquares.Clear();
+                    attackedSquares.Add(square);
                 }
                 if (!Piece.IsColour(piece, attackingColour) && foundAttacker)
                 {  // case 4
-                    friendlyPiece = square;
+                    
+                    friendlyPiece = friendlyPiece == -1 ? square : friendlyPiece;
                     attackedSquares.Add(square);
                     break;
                 }
                 if (checkFunc(piece) && Piece.IsColour(piece, attackingColour))
                 {  // case 2 + 5
+                    attackedSquares.Add(undefendedAttacker);  // kinda complicated but has a point
                     undefendedAttacker = foundAttacker ? square : undefendedAttacker;
+                    attackedSquares.Add(undefendedAttacker);
                     foundAttacker = true;
-                    attackedSquares.Add(undefendedAttacker == -1 ? square : undefendedAttacker);
                     undefendedAttacker = square;
+                    attackedSquares.Add(square);
                 }
-                else if (Piece.IsColour(piece, attackingColour) && !foundAttacker)
+                if (Piece.IsColour(piece, attackingColour) && !foundAttacker)
                 {  // case 3
                     attackedSquares.Clear();
                     attackedSquares.Add(square);
                 }
-                attackedSquares.Add(square);
                 if (Math.Abs(square % 8 - (square + direction) % 8) > 1)
                 {
                     break;
@@ -119,12 +157,15 @@ public class MoveGenerator
             {
                 pins.Add(new Pin(friendlyPiece, direction));
             }
-            if (foundAttacker && friendlyPiece == -1)
+            if (foundAttacker && attackedSquares.Contains(kingSquare))
             {
                 inDoubleCheck = inCheck ? true : false;
                 inCheck = true;
             }
-            attackMap.UnionWith(attackedSquares);
+            if (foundAttacker)
+            {
+                attackMap.UnionWith(attackedSquares);
+            }
             attackedSquares.Clear();
         }
         return pins;
@@ -145,13 +186,13 @@ public class MoveGenerator
                 if (attackedSquare == kingSquare)
                 {
                     inDoubleCheck = inCheck ? true : false;
-                    inKnightCheck = true;
+                    inKnightCheck = knight;
                 }
                 attackMap.Add(attackedSquare);
             }
         }
     }
-    private void SideAttacksMap(HashSet<int> attackMap, int attackingPieceInd)
+    private void InDirectAttacksMap(HashSet<int> attackMap, int attackingPieceInd)
     {
         for (int i = 0; i < board.Bishops[attackingPieceInd].Count; i++)
         {
@@ -165,10 +206,22 @@ public class MoveGenerator
         {
             ExtendAttackMap(attackMap, attackingPieceInd, board.Queens[attackingPieceInd][i], 0, 8);
         }
+        var enemyKing = whiteToMove ? board.KingSquares[1] : board.KingSquares[0];
+        for (int i = 0; i < 8; i++)
+        {
+            int dir = Board.SlidingDirections[i];
+            int square = enemyKing + dir;
+            if (Math.Abs(enemyKing % 8 - (square) % 8) > 1 || square < 0 || square > 63)
+            {
+                continue;
+            }
+            attackMap.Add(square);
+        }
     }
     private void ExtendAttackMap(HashSet<int> attackMap, int attackingPieceInd, int piece,
         int startIndex, int endIndex)
     {
+        int kingSquare = whiteToMove ? board.KingSquares[0] : board.KingSquares[1];
         for (int j = startIndex; j < endIndex; j++)
         {
             int dir = Board.SlidingDirections[j];
@@ -176,7 +229,7 @@ public class MoveGenerator
             while (0 <= square && square < 64)
             {
                 attackMap.Add(square);
-                if (Piece.None != piece)
+                if (Piece.None != board.Squares[square] && square != kingSquare)
                 {
                     break;
                 }
