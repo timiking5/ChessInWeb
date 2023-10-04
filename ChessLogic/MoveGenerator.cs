@@ -18,13 +18,13 @@ public class MoveGenerator
     {
         inCheck = false;
         inDoubleCheck = false;
-        HashSet<int> attackMask = CreateAttackMap();
+        (var attackMask, var pins) = CreateAttackMap();
 
         List<Move> moves = new();
         return moves;
     }
 
-    private HashSet<int> CreateAttackMap()
+    private (HashSet<int>, List<Pin>) CreateAttackMap()
     {
         HashSet<int> attackMap = new();
         int kingSquare = whiteToMove ? board.KingSquares[0] : board.KingSquares[1];
@@ -46,13 +46,27 @@ public class MoveGenerator
         {  // knight attacks
             ExtendAttackMapKnights(attackMap, kingSquare, board.Knights[attackingPiecesInd]);
         }
-        ExtendAttackMapGeneral();
-        return attackMap;
+        SideAttacksMap(attackMap, attackingPiecesInd);
+        PawnAttacks(attackMap, kingSquare, attackingPiecesInd);  // i can probably put in SideAttacksMap but i don't feel like it
+        return (attackMap, pins);
     }
 
-    private void ExtendAttackMapGeneral()
+    private void PawnAttacks(HashSet<int> attackMap, int kingSquare, int attackingPieceInd)
     {
-        throw new NotImplementedException();
+        int coef = whiteToMove ? 1 : -1;
+        int leftAttack = 7 * coef, rightAttack = 9 * coef;
+        for (int i = 0; i < board.Pawns[attackingPieceInd].Count; i++)
+        {
+            int piece = board.Pawns[attackingPieceInd][i];
+            if (Math.Abs(piece % 8 - (piece + leftAttack) % 8) == 1)
+            {
+                attackMap.Add(piece + leftAttack);
+            }
+            if (Math.Abs(piece % 8 - (piece + rightAttack) % 8) == 1)
+            {
+                attackMap.Add(piece + rightAttack);
+            }
+        }
     }
 
     private List<Pin> ExtendAttackMapSlidingPieces(HashSet<int> attackMap, int kingSquare, int attackingColour,
@@ -134,6 +148,43 @@ public class MoveGenerator
                     inKnightCheck = true;
                 }
                 attackMap.Add(attackedSquare);
+            }
+        }
+    }
+    private void SideAttacksMap(HashSet<int> attackMap, int attackingPieceInd)
+    {
+        for (int i = 0; i < board.Bishops[attackingPieceInd].Count; i++)
+        {
+            ExtendAttackMap(attackMap, attackingPieceInd, board.Bishops[attackingPieceInd][i], 4, 8);
+        }
+        for (int i = 0; i < board.Rooks[attackingPieceInd].Count; i++)
+        {
+            ExtendAttackMap(attackMap, attackingPieceInd, board.Rooks[attackingPieceInd][i], 0, 4);
+        }
+        for (int i = 0; i < board.Queens[attackingPieceInd].Count; i++)
+        {
+            ExtendAttackMap(attackMap, attackingPieceInd, board.Queens[attackingPieceInd][i], 0, 8);
+        }
+    }
+    private void ExtendAttackMap(HashSet<int> attackMap, int attackingPieceInd, int piece,
+        int startIndex, int endIndex)
+    {
+        for (int j = startIndex; j < endIndex; j++)
+        {
+            int dir = Board.SlidingDirections[j];
+            int square = piece + dir;
+            while (0 <= square && square < 64)
+            {
+                attackMap.Add(square);
+                if (Piece.None != piece)
+                {
+                    break;
+                }
+                if (Math.Abs(square % 8 - (square + dir) % 8) > 1)
+                {
+                    break;
+                }
+                square += dir;
             }
         }
     }

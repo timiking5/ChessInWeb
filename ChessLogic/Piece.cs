@@ -49,6 +49,10 @@ public static class Piece
     }
     public static bool IsKnight(int piece)
     {
-        return (piece & 0b011) == Knight;
+        return (piece & 0b111) == Knight;
+    }
+    public static bool IsPawn(int piece)
+    {
+        return (piece & 0b111) == Pawn;
     }
 }
