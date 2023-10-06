@@ -24,23 +24,147 @@ public class MoveGenerator
     {
         Init();
         (var attackMap, var pins) = CreateAttackMap();
-        List<Move> moves = new();
+        List<Move> moves = GenerateKingMoves(attackMap);
         if (inDoubleCheck)
         {
-            moves.AddRange(GenerateKingMoves(attackMap));
+            return moves;
+        }
+        if (inKnightCheck != -1)
+        {  // can either move or take the attacking knight
+            moves.AddRange(TakeAttackingKnight(pins));
         }
         return moves;
+    }
+
+    private List<Move> TakeAttackingKnight(List<Pin> pins)
+    {
+        int friendlyPieceInd = whiteToMove ? 0 : 1;
+        List<Move> moves = new();
+        for (int i = 0; i < board.Bishops[friendlyPieceInd].Count; i++)
+        {
+            int bishop = board.Bishops[friendlyPieceInd][i];
+            if (CanTakeKnightSlidingPiece(bishop, 4, 8, pins))
+            {
+                moves.Add(new(bishop, inKnightCheck));
+            }
+        }
+        for (int i = 0; i < board.Rooks[friendlyPieceInd].Count; i++)
+        {
+            int rook = board.Rooks[friendlyPieceInd][i];
+            if (CanTakeKnightSlidingPiece(rook, 0, 4, pins))
+            {
+                moves.Add(new(rook, inKnightCheck));
+            }
+        }
+        for (int i = 0; i < board.Queens[friendlyPieceInd].Count; i++)
+        {
+            int queen = board.Queens[friendlyPieceInd][i];
+            if (CanTakeKnightSlidingPiece(queen, 4, 8, pins))
+            {
+                moves.Add(new(queen, inKnightCheck));
+            }
+        }
+        moves.AddRange(CanTakeKnightPawns(pins));
+        moves.AddRange(CanTakeKnightKnight(pins));
+        return moves;
+    }
+
+    private IEnumerable<Move> CanTakeKnightKnight(List<Pin> pins)
+    {
+        int ind = whiteToMove ? 0 : 1;
+        List<Move> moves = new();
+        for (int i = 0; i < board.Knights[ind].Count; i++)
+        {
+            int knight = board.Knights[ind][i];
+            if (pins.Where(x => x.Square == knight).Count() != 0)
+            {
+                continue;
+            }
+            if (Board.KnightMoves.Contains(inKnightCheck - knight))
+            {
+                moves.Add(new(knight, inKnightCheck));
+            }
+        }
+        return moves;
+    }
+
+    private List<Move> CanTakeKnightPawns(List<Pin> pins)
+    {
+        int ind = whiteToMove ? 0 : 1;
+        int coef = whiteToMove ? 1 : -1;
+        int leftAttack = 7 * coef, rightAttack = 9 * coef;
+        List<Move> moves = new();
+        for (int i = 0; i < board.Pawns[ind].Count; i++)
+        {
+            int pawn = board.Pawns[ind][i];
+            if (pins.Where(x => x.Square == pawn).Count() != 0)
+            {  // there is no way pawn could move and take knight if it is smh pinned
+                continue;
+            }
+            if (Math.Abs(pawn % 8 - (pawn + leftAttack) % 8) == 1 && pawn + leftAttack == inKnightCheck)
+            {
+                moves.Add(new Move(pawn, inKnightCheck));
+            }
+            if (Math.Abs(pawn % 8 - (pawn + rightAttack) % 8) == 1 && pawn + rightAttack == inKnightCheck)
+            {
+                moves.Add(new Move(pawn, inKnightCheck));
+            }
+        }
+        return moves;
+    }
+
+    private bool CanTakeKnightSlidingPiece(int piece, int startIndex, int endIndex, List<Pin> pins)
+    {
+        int difference =  inKnightCheck - piece;
+        if (pins.Where(x => x.Square == piece).Count() == 2)
+        {
+            return false;
+        }
+        int movingDir = 0;
+        for (int i = startIndex; i < endIndex; i++)
+        {
+            int dir = Board.SlidingDirections[i];
+            if (difference > 8 && Math.Abs(dir) == 1)
+            {
+                continue;
+            }
+            if (difference % dir == 0 && difference * dir > 0)
+            {
+                movingDir = dir;
+                break;
+            }
+        }
+        var pin = pins.Where(x => x.Square == piece).FirstOrDefault();
+        if (movingDir == 0 || (pin != null && pin.Direction != movingDir))
+        {
+            return false;
+        }
+        piece += movingDir;
+        while (0 <= piece && piece < 64)
+        {
+            if (piece == inKnightCheck)
+            {
+                return true;
+            }
+            if (Piece.None != board.Squares[piece])
+            {
+                return false;
+            }
+            piece += movingDir;
+        }
+        return false;
     }
 
     private List<Move> GenerateKingMoves(HashSet<int> attackMap)
     {
         int kingSquare = whiteToMove ? board.KingSquares[0] : board.KingSquares[1];
+        int friendlyColour = whiteToMove ? 8 : 16;
         var moves = new List<Move>();
         foreach (var direction in Board.SlidingDirections)
         {
             int move = kingSquare + direction;
             if (Math.Abs(kingSquare % 8 - (move) % 8) > 1 || move < 0 
-                || move > 63 || attackMap.Contains(move))
+                || move > 63 || attackMap.Contains(move) || Piece.IsColour(board.Squares[move], friendlyColour))
             {
                 continue;
             }
@@ -71,14 +195,14 @@ public class MoveGenerator
         {  // knight attacks
             ExtendAttackMapKnights(attackMap, kingSquare, board.Knights[attackingPiecesInd]);
         }
-        InDirectAttacksMap(attackMap, attackingPiecesInd);
+        IndirectAttacksMap(attackMap, attackingPiecesInd);
         PawnAttacks(attackMap, kingSquare, attackingPiecesInd);  // i can probably put in SideAttacksMap but i don't feel like it
         return (attackMap, pins);
     }
 
     private void PawnAttacks(HashSet<int> attackMap, int kingSquare, int attackingPieceInd)
     {
-        int coef = whiteToMove ? 1 : -1;
+        int coef = whiteToMove ? -1 : 1;
         int leftAttack = 7 * coef, rightAttack = 9 * coef;
         for (int i = 0; i < board.Pawns[attackingPieceInd].Count; i++)
         {
@@ -128,7 +252,6 @@ public class MoveGenerator
                 }
                 if (!Piece.IsColour(piece, attackingColour) && foundAttacker)
                 {  // case 4
-                    
                     friendlyPiece = friendlyPiece == -1 ? square : friendlyPiece;
                     attackedSquares.Add(square);
                     break;
@@ -140,12 +263,16 @@ public class MoveGenerator
                     attackedSquares.Add(undefendedAttacker);
                     foundAttacker = true;
                     undefendedAttacker = square;
-                    attackedSquares.Add(square);
                 }
                 if (Piece.IsColour(piece, attackingColour) && !foundAttacker)
                 {  // case 3
                     attackedSquares.Clear();
                     attackedSquares.Add(square);
+                }
+                if (Piece.IsColour(piece, attackingColour) && foundAttacker && !checkFunc(piece))
+                {
+                    attackedSquares.Add(square);
+                    break;
                 }
                 if (Math.Abs(square % 8 - (square + direction) % 8) > 1)
                 {
@@ -192,7 +319,7 @@ public class MoveGenerator
             }
         }
     }
-    private void InDirectAttacksMap(HashSet<int> attackMap, int attackingPieceInd)
+    private void IndirectAttacksMap(HashSet<int> attackMap, int attackingPieceInd)
     {
         for (int i = 0; i < board.Bishops[attackingPieceInd].Count; i++)
         {
