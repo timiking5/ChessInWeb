@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Collections.Concurrent;
+using System.Reflection;
 using System.Xml;
 
 namespace ChessLogic;
@@ -42,12 +43,12 @@ public class MoveGenerator
         }
         if (inCheck == -1 && inKnightCheck == -1)
         {
-            moves.AddRange(GeneratePiecesMoves());
+            moves.AddRange(GeneratePiecesMoves(attackMap));
         }
         return moves;
     }
 
-    private List<Move> GeneratePiecesMoves()
+    private List<Move> GeneratePiecesMoves(HashSet<int> attackMap)
     {
         int index = whiteToMove ? 0 : 1;
         List<Move> moves = new();
@@ -64,8 +65,44 @@ public class MoveGenerator
             moves.AddRange(GenerateSlidingPiecesMoves(board.Queens[index][i], 0, 8));
         }
         moves.AddRange(GenerateKnightMoves());
+        moves.AddRange(GenerateCastling(attackMap));
         // TODO - Generate castling and pawns moves;
         return moves;
+    }
+    private static int[] shortCastling = new[] { 5, 6 };
+    private static int[] longCastling = new[] { 1, 2, 3 };
+    private static int kingSquare = 4;
+    private static int shortCastleSquare = 6;
+    private static int longCastleSquare = 2;
+    private List<Move> GenerateCastling(HashSet<int> attackMap)
+    {
+        bool canGoShort = whiteToMove ? board.WhiteCanCastleKing : board.BlackCanCastleKing;
+        bool canGoLong = whiteToMove ? board.WhiteCanCastleQueen : board.BlackCanCastleQueen;
+        int offset = whiteToMove ? 0 : 56;
+        List<Move> moves = new();
+        if (canGoShort && CanCastle(shortCastling, attackMap))
+        {
+            moves.Add(new(kingSquare + offset, shortCastleSquare + offset, 2));
+        }
+        if (canGoLong && CanCastle(longCastling, attackMap))
+        {
+            moves.Add(new(kingSquare + offset, longCastleSquare + offset, 2));
+        }
+        return moves;
+    }
+
+    private bool CanCastle(int[] squaresToCheck, HashSet<int> attackMap)
+    {
+        int offset = whiteToMove ? 0 : 56;
+        for (int i = 0; i < squaresToCheck.Length; i++)
+        {
+            int square = squaresToCheck[i] + offset;
+            if (board.Squares[square] != Piece.None || attackMap.Contains(square))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     private List<Move> GenerateKnightMoves()
