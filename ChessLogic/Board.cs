@@ -12,7 +12,7 @@ public class Board
     /// </summary>
     public int[] Squares { get; private set; } = new int[64];
     public bool WhiteToMove;
-    public int FiftyMoveCounter { get; set; } = 0;
+    public double FiftyMoveCounter { get; set; } = 0;
     public int PlysCounter { get; set; } = 0;
     public int[] KingSquares { get; set; }
     public bool WhiteCanCastleKing { get; set; }
@@ -25,7 +25,7 @@ public class Board
     public PieceList[] Queens { get; set; }
     public PieceList[] Knights { get; set; }
     public PieceList[] Pawns { get; set; }
-    private int EnPassantCol = -1;  // tells if there is an opportunity to En Passant
+    public int EnPassantCol = -1;  // tells if there is an opportunity to En Passant
     private static Dictionary<char, int> pieceTypeFromSymbol = new Dictionary<char, int>
     {
         ['k'] = Piece.King,

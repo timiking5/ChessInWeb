@@ -1,5 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Transactions;
 using System.Xml;
 
 namespace ChessLogic;
@@ -66,8 +68,212 @@ public class MoveGenerator
         }
         moves.AddRange(GenerateKnightMoves());
         moves.AddRange(GenerateCastling(attackMap));
+        moves.AddRange(GeneratePawnMoves());
         // TODO - Generate castling and pawns moves;
         return moves;
+    }
+
+    private List<Move> GeneratePawnMoves()
+    {
+        List<Move> moves = new();
+        int index = whiteToMove ? 0 : 1;
+        int coef = whiteToMove ? 1 : -1;
+        int leftAttack = 7 * coef, rightAttack = 9 * coef;
+        int startingRow = whiteToMove ? 1 : 6, endRow = whiteToMove ? 6 : 1;
+        for (int i = 0; i < board.Pawns[index].Count; i++)
+        {
+            int pawn = board.Pawns[index][i];
+            moves.AddRange(GenerateMovesForPawn(pawn, leftAttack, rightAttack, startingRow, endRow, coef));
+        }
+        if (board.EnPassantCol != -1)
+        {
+            moves.AddRange(GenerateEnPassant());
+        }
+
+        return moves;
+    }
+
+    private List<Move> GenerateEnPassant()
+    {
+        List<Move> moves = new();
+        int enPassantRow = whiteToMove ? 4 : 3;
+        int leftIndex = enPassantRow * 8 + board.EnPassantCol - 1;
+        int rightIndex = enPassantRow * 8 + board.EnPassantCol + 1;
+        int leftPiece = board.Squares[leftIndex];
+        int rightPiece = board.Squares[rightIndex];
+        int enPassantPawn = board.Squares[enPassantRow * 8 + board.EnPassantCol];
+        int pawn = -1;
+        if (CanDoEnpassant(leftIndex, leftPiece, enPassantPawn, 9) && CanDoEnpassant(rightIndex, rightPiece, enPassantPawn, 7))
+        {
+            moves.Add(new(leftIndex, (enPassantRow + 1) * 8 + board.EnPassantCol, 1));
+            moves.Add(new(rightIndex, (enPassantRow + 1) * 8 + board.EnPassantCol, 1));
+            return moves;
+        }
+        if (CanDoEnpassant(leftIndex, leftPiece, enPassantPawn, 9))
+        {
+            pawn = leftIndex;
+        }
+        if (CanDoEnpassant(rightIndex, rightPiece, enPassantPawn, 7))
+        {
+            pawn = rightIndex;
+        }
+        if (pawn == -1)
+        {
+            return moves;
+        }
+        if (EnPassantLegal(pawn))
+        {
+            moves.Add(new(pawn, (enPassantRow + 1) * 8 + board.EnPassantCol, 1));
+        }
+
+        return moves;
+    }
+
+    private bool EnPassantLegal(int pawn)
+    {
+        bool foundKing = false;
+        int attacker = -1;
+        int friendlyColor = whiteToMove ? 8 : 16;
+        int attackingColour = whiteToMove ? 16 : 8;
+        int kingSquare = whiteToMove ? board.KingSquares[0] : board.KingSquares[1];
+        int start = pawn / 8 * 8, end = pawn / 8 * 8 + 8;
+        int square = start;
+        if (kingSquare / 8 != pawn / 8)
+        {
+            return true;
+        }
+        while (square < end)
+        {
+            if (board.Squares[square] == Piece.None || Piece.IsPawn(board.Squares[square]))
+            {
+                square += 1;
+                continue;
+            }
+            if (square == kingSquare)
+            {
+                foundKing = true;
+                square += 1;
+                continue;
+            }
+            if (foundKing && attacker == -1 && Piece.IsColour(board.Squares[square], friendlyColor))
+            {
+                return true;
+            }
+            if (foundKing && attacker == -1 && Piece.IsColour(board.Squares[square], attackingColour))
+            {
+                attacker = square;
+            }
+            if (!foundKing && Piece.IsColour(board.Squares[square], attackingColour))
+            {
+                attacker = square;
+            }
+            square += 1;
+        }
+        if (attacker != -1 && Piece.IsRookOrQueen(board.Squares[attacker]))
+        { // king will always be found by now
+            return false;
+        }
+        return true;
+    }
+
+    private bool CanDoEnpassant(int square, int piece, int enPassantPawn, int captDir)
+    {
+        var pawnPins = pins.Where(x => x.Square == square);
+        if (pawnPins.Count() == 2)
+        {
+            return false;
+        }
+        bool pinned = false;
+        int pinDir = 0;
+        if (pawnPins.Count() == 1)
+        {
+            pinned = true;
+            pinDir = pawnPins.First().Direction;
+        }
+        return Piece.IsPawn(piece) && !Piece.IsColour(piece, Piece.Colour(enPassantPawn)) && (!pinned || Math.Abs(pinDir) == Math.Abs(captDir));
+    }
+
+    private List<Move> GenerateMovesForPawn(int pawn, int leftAttack, int rightAttack, int startingRow, int endRow, int coef)
+    {  // PINS!!!
+        List<Move> moves = new();
+        bool pinned = false;
+        int dir = 0;
+        var pawnPins = pins.Where(x => x.Square == pawn);
+        if (pawnPins.Count() == 2)
+        {
+            return moves;
+        }
+        if (pawnPins.Count() == 1)
+        {
+            pinned = true;
+            dir = pawnPins.First().Direction;
+        }
+        if (pawn / 8 == startingRow && InBounds(pawn + 16 * coef)
+            && board.Squares[pawn + 8 * coef] == Piece.None && board.Squares[pawn + 16 * coef] == Piece.None
+            && PinnedCanMove(pinned, 8, dir))
+        {
+            moves.Add(new(pawn, pawn + 16 * coef, 7));
+        }
+        if (InBounds(pawn + 8 * coef) && board.Squares[pawn + 8 * coef] == Piece.None && PinnedCanMove(pinned, 8, dir))
+        {
+            if (pawn / 8 != endRow)
+            {
+                moves.Add(new(pawn, pawn + rightAttack));
+            }
+            else
+            {
+                moves.AddRange(new List<Move>()
+                {
+                    new(pawn, pawn + 8 * coef, 3),
+                    new(pawn, pawn + 8 * coef, 4),
+                    new(pawn, pawn + 8 * coef, 5),
+                    new(pawn, pawn + 8 * coef, 6),
+                });
+            }
+        }
+        if (InBounds(pawn + leftAttack) && board.Squares[pawn + leftAttack] != Piece.None
+            && !Piece.IsColour(board.Squares[pawn + leftAttack], board.Squares[pawn])
+            && PinnedCanMove(pinned, leftAttack, dir))
+        {
+            if (pawn / 8 != endRow)
+            {
+                moves.Add(new(pawn, pawn + leftAttack));
+            }
+            else
+            {
+                moves.AddRange(new List<Move>()
+                {
+                    new(pawn, pawn + leftAttack, 3),
+                    new(pawn, pawn + leftAttack, 4),
+                    new(pawn, pawn + leftAttack, 5),
+                    new(pawn, pawn + leftAttack, 6),
+                });
+            }
+        }
+        if (InBounds(pawn + rightAttack) && board.Squares[pawn + rightAttack] != Piece.None
+            && !Piece.IsColour(board.Squares[pawn + rightAttack], board.Squares[pawn])
+            && PinnedCanMove(pinned, rightAttack, dir))
+        {
+            if (pawn / 8 != endRow)
+            {
+                moves.Add(new(pawn, pawn + rightAttack));
+            }
+            else
+            {
+                moves.AddRange(new List<Move>()
+                {
+                    new(pawn, pawn + rightAttack, 3),
+                    new(pawn, pawn + rightAttack, 4),
+                    new(pawn, pawn + rightAttack, 5),
+                    new(pawn, pawn + rightAttack, 6),
+                });
+            }
+        }
+        return moves;
+    }
+    private bool PinnedCanMove(bool pinned, int moveDir, int pinDir)
+    {
+        return !pinned || Math.Abs(moveDir) == Math.Abs(pinDir);
     }
     private static int[] shortCastling = new[] { 5, 6 };
     private static int[] longCastling = new[] { 1, 2, 3 };
@@ -660,5 +866,9 @@ public class MoveGenerator
                 }
             }
         }
+    }
+    private bool InBounds(int position)
+    {
+        return 0 <= position && position < 64;
     }
 }
