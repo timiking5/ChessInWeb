@@ -443,9 +443,9 @@ public class MoveGenerator
             {
                 moves.Add(new(pawn, pawn + 8 * coef));
             }
-            if (squaresToBlock.Contains(pawn + 16 * coef))
+            if (squaresToBlock.Contains(pawn + 16 * coef) && InBounds(pawn + 8 * coef) && board.Squares[pawn + 8 * coef] == Piece.None)
             {
-                moves.Add(new(pawn, pawn + 16 * coef));
+                moves.Add(new(pawn, pawn + 16 * coef, 7));
             }
         }
 
@@ -681,7 +681,6 @@ public class MoveGenerator
         int kingSquare = whiteToMove ? board.KingSquares[0] : board.KingSquares[1];
         int attackingPiecesInd = whiteToMove ? 1 : 0;
         int attackingColour = whiteToMove ? 16 : 8;
-        int startIndex = 0, endIndex = 8;
         if (board.Bishops[attackingPiecesInd].Count > 0 || board.Queens[attackingPiecesInd].Count > 0)
         {
             // some pieces can attack diagonaly
