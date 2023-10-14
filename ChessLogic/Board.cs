@@ -94,8 +94,8 @@ public class Board
         FiftyMoveCounter = int.Parse(meta[4]);
         PlysCounter = (int.Parse(meta[5]) - 1) * 2;
         PlysCounter += WhiteToMove ? 0 : 1;
-        bool enPassant = int.TryParse(meta[3], out int ePCol);
-        EnPassantCol = enPassant ? ePCol : -1;
+        bool enPassant = meta[3] != "-";
+        EnPassantCol = enPassant ? meta[3][0] - 'a' : -1;
         WhiteCanCastleKing = meta[2].Contains('K');
         WhiteCanCastleQueen = meta[2].Contains('Q');
         BlackCanCastleKing = meta[2].Contains('k');

@@ -218,7 +218,7 @@ public class MoveGenerator
         {
             if (pawn / 8 != endRow)
             {
-                moves.Add(new(pawn, pawn + rightAttack));
+                moves.Add(new(pawn, pawn + 8 * coef));
             }
             else
             {
@@ -342,13 +342,13 @@ public class MoveGenerator
         List<Move> moves = new();
         int colour = Piece.Colour(board.Squares[piece]);
         var piecePins = pins.Where(x => x.Square == piece);
-        if (pins.Count > 1)
+        if (piecePins.Count() > 1)
         {
             return moves;
         }
         bool pinned = false;
         int pinnedDir = -1000;
-        if (pins.Count == 1)
+        if (piecePins.Count() == 1)
         {
             pinned = true;
             pinnedDir = pins.First().Direction;
@@ -725,6 +725,10 @@ public class MoveGenerator
         for (int i = startIndex; i < endIndex; i++)
         {
             int direction = Board.SlidingDirections[i];
+            if (Math.Abs(kingSquare % 8 - (kingSquare + direction) % 8) > 1)
+            {
+                continue;
+            }
             int square = kingSquare + direction;
             attackedSquares.Add(kingSquare);
             int undefendedAttacker = -1;
@@ -765,6 +769,7 @@ public class MoveGenerator
                 }
                 if (Piece.IsColour(piece, attackingColour) && foundAttacker == -1)
                 {  // case 3
+                    friendlyPiece = -1;
                     attackedSquares.Clear();
                     attackedSquares.Add(square);
                 }
