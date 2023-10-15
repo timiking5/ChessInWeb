@@ -166,7 +166,7 @@ public class Board
     private void CastleKing(Move move)
     {
         int offset = move.StartIndex == 4 ? 0 : 56;
-        int rookSquare = move.EndIndex == 6 + offset ? 0 + offset : 7 + offset;
+        int rookSquare = move.EndIndex == 6 + offset ? 7 + offset : 0 + offset;
         int rookMoveSquare = move.EndIndex == 6 + offset ? 5 + offset : 3 + offset;
         int index = Piece.Colour(Squares[rookSquare]) == 8 ? 0 : 1;
         KingSquares[index] = move.EndIndex;
