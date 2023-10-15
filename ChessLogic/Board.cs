@@ -19,7 +19,7 @@ public class Board
     public bool WhiteCanCastleQueen { get; set; }
     public bool BlackCanCastleKing { get; set; }
     public bool BlackCanCastleQueen { get; set; }
-    public int colourToMoveIndex { get; set; }
+    public int ColourToMoveIndex { get; set; }
     public PieceList[] Rooks { get; set; }
     public PieceList[] Bishops { get; set; }
     public PieceList[] Queens { get; set; }
@@ -170,7 +170,9 @@ public class Board
         int rookMoveSquare = move.EndIndex == 6 + offset ? 5 + offset : 3 + offset;
         int index = Piece.Colour(Squares[rookSquare]) == 8 ? 0 : 1;
         KingSquares[index] = move.EndIndex;
-        Rooks[index].MovePiece(rookSquare, rookMoveSquare);
+        Squares[move.EndIndex] = Squares[move.StartIndex];
+        Squares[move.StartIndex] = 0;
+        MovePiece(Squares[rookSquare], new(rookSquare, rookMoveSquare));
         switch (index)
         {
             case 0:
@@ -266,5 +268,7 @@ public class Board
                 Queens[index].MovePiece(move.StartIndex, move.EndIndex);
                 break;
         }
+        Squares[move.StartIndex] = 0;
+        Squares[move.EndIndex] = piece;
     }
 }

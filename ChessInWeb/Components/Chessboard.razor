@@ -1,15 +1,13 @@
-﻿@using ChessLogic
-
-<div class="chessboard">
+﻿<div class="chessboard">
     @for (int i = 63; i >= 0; i--)
     {
-        <Square IconSrc="@IconSrc(i)" IdNum="@i" Selected="@availableSquares.Contains(i)" HandleClick="@ManageClick"></Square>
+        <Square @bind-Rerender="@rerenderCount" IconSrc="@IconSrc(i)" IdNum="@i" Selected="@availableSquares.Contains(i)" HandleClick="@ManageClick"></Square>
     }
 </div>
 @code {
     [Parameter]
-    public GameManager GameManager { get; set; }
-    private int Square = 0;
+    public GameManager? GameManager { get; set; }
+    private int rerenderCount = 0;
     private HashSet<int> availableSquares = new();
     private int currentSelected = -1;
     protected override async Task OnInitializedAsync()
@@ -48,19 +46,29 @@
     }
     public void ManageClick(int id)
     {
-        availableSquares.Clear();
-        currentSelected = -1;
         if (availableSquares.Contains(id))
         {
             GameManager.MakeMove(GameManager.MovesStorage[currentSelected].Where(x => x.EndIndex == id).First());
             CheckGameFinished();
+            ClearMeta();
+            GameManager.GetMoves();
+            StateHasChanged();
             return;
         }
+        ClearMeta();
         if (GameManager.Squares[id] != Piece.None && GameManager.MovesStorage.ContainsKey(id))
         {
             currentSelected = id;
             GameManager.MovesStorage[id].Select(x => x.EndIndex).ToList().ForEach(x => availableSquares.Add(x));
+            StateHasChanged();
+            return;
         }
+    }
+    private void ClearMeta()
+    {
+        rerenderCount++;
+        currentSelected = -1;
+        availableSquares.Clear();
     }
     private void CheckGameFinished()
     {

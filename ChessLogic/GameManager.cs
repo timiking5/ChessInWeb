@@ -7,6 +7,14 @@ public class GameManager
     private List<Move> _currentMoves;
     public Dictionary<int, List<Move>> MovesStorage { get; private set; }
     public int[] Squares { get; private set; }
+    public GameManager()
+    {
+        _board = new();
+        _board.LoadPositionFromFen(Util.StartingPos);
+        Squares = _board.Squares;
+        MovesStorage = new();
+        _moveGenerator = new(_board);
+    }
     public GameManager(Board board)
     {
         Squares = board.Squares;

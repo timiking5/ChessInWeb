@@ -1,0 +1,62 @@
+﻿@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components
+
+
+
+<div class="@($"{style} square")" @onclick=InvokeParentMethod>
+    @if (!string.IsNullOrEmpty(IconSrc))
+    {
+        <img src="@IconSrc"/>
+    }
+</div>  
+
+
+
+@code {
+    [Parameter]
+    public string? IconSrc { get; set; }
+    [Parameter]
+    public int IdNum { get; set; }
+    [Parameter]
+    public bool Selected { get; set; }
+    [Parameter]
+    public EventCallback<int> HandleClick { get; set; }
+    [Parameter]
+    public int Rerender { get; set; }
+    [Parameter]
+    public EventCallback<int> RerenderChanged { get; set; }
+    private string? style;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Selected)
+        {
+            style = "selected";
+            return;
+        }
+        if (IdNum / 8 % 2 == IdNum % 8 % 2)
+        {
+            style = "black";
+            return;
+        }
+        style = "white";
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Selected)
+        {
+            style = "selected";
+            return;
+        }
+        if (IdNum / 8 % 2 == IdNum % 8 % 2)
+        {
+            style = "black";
+            return;
+        }
+        style = "white";
+    }
+    public async Task InvokeParentMethod()
+    {
+        await HandleClick.InvokeAsync(IdNum);
+    }
+}

@@ -22,6 +22,7 @@ public class MoveGenerator
     }
     private void Init()
     {
+        whiteToMove = board.WhiteToMove;
         pins.Clear();
         inCheck = -1;
         inDoubleCheck = false;
@@ -234,7 +235,7 @@ public class MoveGenerator
         }
         if (InBounds(pawn + leftAttack) && board.Squares[pawn + leftAttack] != Piece.None
             && !Piece.IsColour(board.Squares[pawn + leftAttack], board.Squares[pawn])
-            && PinnedCanMove(pinned, leftAttack, dir))
+            && PinnedCanMove(pinned, leftAttack, dir) && Math.Abs(pawn % 8 - (pawn + leftAttack) % 8) == 1)
         {
             if (pawn / 8 != endRow)
             {
@@ -253,7 +254,7 @@ public class MoveGenerator
         }
         if (InBounds(pawn + rightAttack) && board.Squares[pawn + rightAttack] != Piece.None
             && !Piece.IsColour(board.Squares[pawn + rightAttack], board.Squares[pawn])
-            && PinnedCanMove(pinned, rightAttack, dir))
+            && PinnedCanMove(pinned, rightAttack, dir) && Math.Abs(pawn % 8 - (pawn + rightAttack) % 8) == 1)
         {
             if (pawn / 8 != endRow)
             {

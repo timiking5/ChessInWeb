@@ -16,9 +16,7 @@ namespace ChessInWeb.Controllers
 
         public IActionResult Index()
         {
-            Board board = new();
-            board.LoadPositionFromFen(Util.StartingPos);
-            GameManager manager = new(board);
+            GameManager manager = new();
             return View(manager);
         }
 

@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataAccess", "DataAccess\Da
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Models", "Models\Models.csproj", "{F91B8C67-E704-4316-90B7-144A9F66E74B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsAppForTesting", "ConsAppForTesting\ConsAppForTesting.csproj", "{5FA05ADE-4A53-4A9B-B6C6-954481E99421}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsAppForTesting", "ConsAppForTesting\ConsAppForTesting.csproj", "{5FA05ADE-4A53-4A9B-B6C6-954481E99421}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utility", "Utility\Utility.csproj", "{E18FC84B-AC42-4A06-A356-D4C6FE5595DB}"
 EndProject
