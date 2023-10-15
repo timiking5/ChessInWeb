@@ -1,0 +1,69 @@
+﻿@using ChessLogic
+
+<div class="chessboard">
+    @for (int i = 63; i >= 0; i--)
+    {
+        <Square IconSrc="@IconSrc(i)" IdNum="@i" Selected="@availableSquares.Contains(i)" HandleClick="@ManageClick"></Square>
+    }
+</div>
+@code {
+    [Parameter]
+    public GameManager GameManager { get; set; }
+    private int Square = 0;
+    private HashSet<int> availableSquares = new();
+    private int currentSelected = -1;
+    protected override async Task OnInitializedAsync()
+    {
+        GameManager?.GetMoves();
+    }
+    private string resources = "Icons/";
+    private string IconSrc(int square)
+    {
+        string respond = "";
+        switch (Piece.PieceType(GameManager.Squares[square]))
+        {
+            case 1:
+                respond = "king";
+                break;
+            case 2:
+                respond = "pawn";
+                break;
+            case 3:
+                respond = "knight";
+                break;
+            case 5:
+                respond = "bishop";
+                break;
+            case 6:
+                respond = "rook";
+                break;
+            case 7:
+                respond = "queen";
+                break;
+            default:
+                return "";
+        }
+        string color = Piece.Colour(GameManager.Squares[square]) == 8 ? "white" : "black";
+        return resources + color + respond + ".png";
+    }
+    public void ManageClick(int id)
+    {
+        availableSquares.Clear();
+        currentSelected = -1;
+        if (availableSquares.Contains(id))
+        {
+            GameManager.MakeMove(GameManager.MovesStorage[currentSelected].Where(x => x.EndIndex == id).First());
+            CheckGameFinished();
+            return;
+        }
+        if (GameManager.Squares[id] != Piece.None && GameManager.MovesStorage.ContainsKey(id))
+        {
+            currentSelected = id;
+            GameManager.MovesStorage[id].Select(x => x.EndIndex).ToList().ForEach(x => availableSquares.Add(x));
+        }
+    }
+    private void CheckGameFinished()
+    {
+        
+    }
+}

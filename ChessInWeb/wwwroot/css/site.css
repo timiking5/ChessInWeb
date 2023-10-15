@@ -20,3 +20,31 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+.square {
+    height: 4rem;
+    width: 4rem;
+}
+
+.black {
+    background-color: #3a9c42;
+}
+.white {
+    background-color: #d9deda;
+}
+.selected {
+    background-color: #e6e345;
+}
+
+.square img {
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    height: 4rem;
+    width: 4rem;
+}
+
+.chessboard {
+    display: grid;
+    grid-template-columns: repeat(8, 4rem);
+}

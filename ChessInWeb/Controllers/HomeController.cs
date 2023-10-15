@@ -1,4 +1,5 @@
 ﻿using ChessInWeb.Models;
+using ChessLogic;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
@@ -15,7 +16,10 @@ namespace ChessInWeb.Controllers
 
         public IActionResult Index()
         {
-            return View();
+            Board board = new();
+            board.LoadPositionFromFen(Util.StartingPos);
+            GameManager manager = new(board);
+            return View(manager);
         }
 
         public IActionResult Privacy()

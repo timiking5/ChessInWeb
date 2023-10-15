@@ -8,6 +8,13 @@ public class MoveGenerator
     private bool inDoubleCheck;
     private int inKnightCheck = -1;
     private List<Pin> pins = new(1);
+    public bool InCheck
+    {
+        get
+        {
+            return inCheck != -1 || inKnightCheck != -1;
+        } 
+    }
     public MoveGenerator(Board board)
     {
         this.board = board;

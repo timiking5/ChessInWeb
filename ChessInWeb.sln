@@ -3,17 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.7.34003.232
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChessInWeb", "ChessInWeb\ChessInWeb.csproj", "{028E9914-E080-4EC0-AD40-4FC7DADB7947}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChessInWeb", "ChessInWeb\ChessInWeb.csproj", "{028E9914-E080-4EC0-AD40-4FC7DADB7947}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChessLogic", "ChessLogic\ChessLogic.csproj", "{85C3504F-8B4E-4BC0-BC05-297163E4F57C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChessLogic", "ChessLogic\ChessLogic.csproj", "{85C3504F-8B4E-4BC0-BC05-297163E4F57C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataAccess", "DataAccess\DataAccess.csproj", "{5680A79C-7177-4056-85D2-BE0C47ECBC54}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataAccess", "DataAccess\DataAccess.csproj", "{5680A79C-7177-4056-85D2-BE0C47ECBC54}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Models", "Models\Models.csproj", "{F91B8C67-E704-4316-90B7-144A9F66E74B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Models", "Models\Models.csproj", "{F91B8C67-E704-4316-90B7-144A9F66E74B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsAppForTesting", "ConsAppForTesting\ConsAppForTesting.csproj", "{5FA05ADE-4A53-4A9B-B6C6-954481E99421}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utility", "Utility\Utility.csproj", "{E18FC84B-AC42-4A06-A356-D4C6FE5595DB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utility", "Utility\Utility.csproj", "{E18FC84B-AC42-4A06-A356-D4C6FE5595DB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
