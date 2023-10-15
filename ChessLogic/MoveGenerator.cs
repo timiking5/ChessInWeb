@@ -1,10 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Reflection;
-using System.Security.Cryptography;
-using System.Transactions;
-using System.Xml;
-
-namespace ChessLogic;
+﻿namespace ChessLogic;
 
 public class MoveGenerator
 {

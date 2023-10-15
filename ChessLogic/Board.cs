@@ -111,4 +111,160 @@ public class Board
         Bishops = new PieceList[] { new PieceList(10), new PieceList(10) };
         Queens = new PieceList[] { new PieceList(9), new PieceList(9) };
     }
+    public void MakeMove(Move move)
+    {
+        WhiteToMove = !WhiteToMove;
+        bool fmc = false;  // fifty moves counter
+        switch (move.MoveFlag)
+        {
+            case 0:
+            case 1:
+            case 7:
+                fmc = MakeMoveUtil(move);
+                break;
+            case 2:
+                CastleKing(move);
+                break;
+            case 3:
+            case 4:
+            case 5:
+            case 6:
+                PromotePawn(move);
+                fmc = true;
+                break;
+        }
+        PlysCounter++;
+        FiftyMoveCounter = fmc ? 0 : FiftyMoveCounter + 0.5;
+    }
+
+    private void PromotePawn(Move move)
+    {
+        int index = WhiteToMove ? 0 : 1;
+        Pawns[index].RemovePieceAtSquare(move.StartIndex);
+        int targetSquare = move.EndIndex;
+        if (Squares[targetSquare] != Piece.None)
+        {
+            RemovePiece(Squares[targetSquare], targetSquare);
+        }
+        switch (move.MoveFlag)
+        {
+            case 3:
+                Knights[index].AddPieceAtSquare(move.EndIndex);
+                break;
+            case 5:
+                Bishops[index].AddPieceAtSquare(move.EndIndex);
+                break;
+            case 6:
+                Rooks[index].AddPieceAtSquare(move.EndIndex);
+                break;
+            case 7:
+                Queens[index].AddPieceAtSquare(move.EndIndex);
+                break;
+        }
+    }
+
+    private void CastleKing(Move move)
+    {
+        int offset = move.StartIndex == 4 ? 0 : 56;
+        int rookSquare = move.EndIndex == 6 + offset ? 0 + offset : 7 + offset;
+        int rookMoveSquare = move.EndIndex == 6 + offset ? 5 + offset : 3 + offset;
+        int index = Piece.Colour(Squares[rookSquare]) == 8 ? 0 : 1;
+        KingSquares[index] = move.EndIndex;
+        Rooks[index].MovePiece(rookSquare, rookMoveSquare);
+        switch (index)
+        {
+            case 0:
+                WhiteCanCastleKing = false;
+                WhiteCanCastleQueen = false;
+                break;
+            case 1:
+                BlackCanCastleKing = false;
+                BlackCanCastleQueen = false;
+                break;
+        }
+    }
+
+    private bool MakeMoveUtil(Move move)
+    {
+        int targetSquare = move.MoveFlag == 1 ? move.EndIndex - 8 : move.EndIndex;
+        bool fmc = Piece.IsPawn(Squares[move.StartIndex]);
+        if (Squares[targetSquare] != Piece.None)
+        {
+            RemovePiece(Squares[targetSquare], targetSquare);
+            fmc = true;
+        }
+        MovePiece(Squares[move.StartIndex], move);
+        if (move.MoveFlag == 7)
+        {
+            EnPassantCol = move.StartIndex % 8;
+        }
+        int offset = WhiteToMove ? 0 : 56;
+        switch (move.StartIndex + offset, WhiteToMove)
+        { // moving a rook disables castling.
+            case (0, true):
+                WhiteCanCastleQueen = false;
+                break;
+            case (7, true):
+                WhiteCanCastleKing = false;
+                break;
+            case (56, false):
+                BlackCanCastleQueen = false;
+                break;
+            case (63, false):
+                BlackCanCastleKing = false;
+                break;
+        }
+        return fmc;
+    }
+    private void RemovePiece(int piece, int square)
+    {
+        int colour = Piece.Colour(piece);
+        int index = colour == 8 ? 0 : 1;
+        int pieceType = piece - colour;
+        switch (pieceType)
+        {
+            case 2:
+                Pawns[index].RemovePieceAtSquare(square);
+                break;
+            case 3:
+                Knights[index].RemovePieceAtSquare(square);
+                break;
+            case 5:
+                Bishops[index].RemovePieceAtSquare(square);
+                break;
+            case 6:
+                Rooks[index].RemovePieceAtSquare(square);
+                break;
+            case 7:
+                Queens[index].RemovePieceAtSquare(square);
+                break;
+        }
+    }
+    private void MovePiece(int piece, Move move)
+    {
+        int colour = Piece.Colour(piece);
+        int index = colour == 8 ? 0 : 1;
+        int pieceType = piece - colour;
+        switch (pieceType)
+        {
+            case 1:
+                KingSquares[index] = move.EndIndex;
+                break;
+            case 2:
+                Pawns[index].MovePiece(move.StartIndex, move.EndIndex);
+                break;
+            case 3:
+                Knights[index].MovePiece(move.StartIndex, move.EndIndex);
+                break;
+            case 5:
+                Bishops[index].MovePiece(move.StartIndex, move.EndIndex);
+                break;
+            case 6:
+                Rooks[index].MovePiece(move.StartIndex, move.EndIndex);
+                break;
+            case 7:
+                Queens[index].MovePiece(move.StartIndex, move.EndIndex);
+                break;
+        }
+    }
 }
