@@ -241,6 +241,7 @@ public class Board
                 Queens[index].RemovePieceAtSquare(square);
                 break;
         }
+        Squares[square] = 0;
     }
     private void MovePiece(int piece, Move move)
     {

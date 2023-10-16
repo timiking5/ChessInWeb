@@ -1,7 +1,13 @@
 ﻿<div class="chessboard">
     @for (int i = 63; i >= 0; i--)
     {
-        <Square @bind-Rerender="@rerenderCount" IconSrc="@IconSrc(i)" IdNum="@i" Selected="@availableSquares.Contains(i)" HandleClick="@ManageClick"></Square>
+        int s = i - j;
+        <Square @bind-Rerender="@rerenderCount" IconSrc="@IconSrc(s)" IdNum="@s" Selected="@availableSquares.Contains(s)" HandleClick="@ManageClick"></Square>
+        j -= 2;
+        if (j < -7)
+        {
+            j = 7;
+        }
     }
 </div>
 @code {
@@ -10,6 +16,7 @@
     private int rerenderCount = 0;
     private HashSet<int> availableSquares = new();
     private int currentSelected = -1;
+    private int j = 7;
     protected override async Task OnInitializedAsync()
     {
         GameManager?.GetMoves();

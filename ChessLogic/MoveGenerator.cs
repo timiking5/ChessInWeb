@@ -232,9 +232,9 @@ public class MoveGenerator
                     new(pawn, pawn + 8 * coef, 6),
                 });
             }
-        }
+            }
         if (InBounds(pawn + leftAttack) && board.Squares[pawn + leftAttack] != Piece.None
-            && !Piece.IsColour(board.Squares[pawn + leftAttack], board.Squares[pawn])
+            && !Piece.IsColour(board.Squares[pawn + leftAttack], Piece.Colour(board.Squares[pawn]))
             && PinnedCanMove(pinned, leftAttack, dir) && Math.Abs(pawn % 8 - (pawn + leftAttack) % 8) == 1)
         {
             if (pawn / 8 != endRow)
@@ -253,7 +253,7 @@ public class MoveGenerator
             }
         }
         if (InBounds(pawn + rightAttack) && board.Squares[pawn + rightAttack] != Piece.None
-            && !Piece.IsColour(board.Squares[pawn + rightAttack], board.Squares[pawn])
+            && !Piece.IsColour(board.Squares[pawn + rightAttack], Piece.Colour(board.Squares[pawn]))
             && PinnedCanMove(pinned, rightAttack, dir) && Math.Abs(pawn % 8 - (pawn + rightAttack) % 8) == 1)
         {
             if (pawn / 8 != endRow)
