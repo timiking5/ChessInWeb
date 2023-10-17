@@ -1,0 +1,32 @@
+﻿<h3>@time</h3>
+
+@code {
+    private System.Threading.Timer timer;
+    private int secondsLeft;
+    private string time;
+    protected override async Task OnInitializedAsync()
+    {
+        secondsLeft = Util.ThirstySecondsMode;
+        time = TimeToFormat(secondsLeft);
+        timer = new System.Threading.Timer(DecreaseTime, new AutoResetEvent(false), 1000, 1000);
+
+    }
+    private string TimeToFormat(int seconds)
+    {
+        return $"{seconds / 60}:{seconds % 60}";
+    }
+    private async void DecreaseTime(Object stateInfo)
+    {
+        secondsLeft--;
+        time = TimeToFormat(secondsLeft);
+        await InvokeAsync(() => StateHasChanged());
+    }
+    public void Stop()
+    {
+        timer.Change(Timeout.Infinite, Timeout.Infinite);
+    }
+    public void Start()
+    {
+        timer.Change(1000, 1000);
+    }
+}

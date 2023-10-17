@@ -10,4 +10,8 @@ public static class Util
     public const string IllegalEnPassantPos1 = "4kb2/8/8/KPp4r/8/8/8/2R2B2 w - - 0 2";
     public const string IllegalEnPassantPos2 = "1r2k3/4ppb1/P7/1Pp5/2P5/1K6/3B2R1/8 w - - 0 2";
     public const string EnPassantPos = "rnbqkbnr/ppp1pppp/8/2Pp4/8/2N5/PP1PPPPP/R1BQKBNR w KQkq d6 0 2";
+    public const int ThirstySecondsMode = 30;
+    public const int ThreeMinutesMode = 180;
+    public const int TenMinutesMode = 600;
+    public const int ThirtyMinutesMode = 1800;
 }
