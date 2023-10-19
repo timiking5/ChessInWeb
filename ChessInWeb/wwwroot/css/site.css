@@ -44,7 +44,51 @@ body {
     width: 4rem;
 }
 
-.chessboard {
+.squares {
     display: grid;
     grid-template-columns: repeat(8, 4rem);
+}
+
+.informer {
+    background: #eeeeee;
+    border-radius: 4px;
+    padding: 0;
+    text-align: center;
+    width: 120px;
+}
+
+.timer {
+    text-align: center;
+    font-size: 20px;
+    padding: 10px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.opponentSide {
+    border-radius: 4px 4px 0 0;
+    background-color: #5bc0de;
+    text-align: center;
+}
+
+.playerSide {
+    border-radius: 0 0 4px 4px;
+    background-color: #5bc0de;
+    text-align: center;
+}
+
+.dot {
+    height: 25px;
+    width: 25px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.white-dot {
+    background-color: white;
+}
+
+.black-dot {
+    background-color: black;
 }

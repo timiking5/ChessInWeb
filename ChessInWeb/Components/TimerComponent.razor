@@ -1,6 +1,15 @@
-﻿<h3>@time</h3>
-
+﻿<div class="@(OpponentSide ? "opponentSide" : "playerSide") timer">
+    <i class="dot @(WhiteTimer ? "white-dot" : "black-dot")"></i>
+    <span>&nbsp;&nbsp;</span>
+    <span>@time</span>
+</div>
 @code {
+    [Parameter]
+    public EventCallback<bool> TimeRanOut { get; set; }
+    [Parameter]
+    public bool OpponentSide { get; set; } = false;
+    [Parameter]
+    public bool WhiteTimer { get; set; } = true;
     private System.Threading.Timer timer;
     private int secondsLeft;
     private string time;
@@ -8,8 +17,7 @@
     {
         secondsLeft = Util.ThirstySecondsMode;
         time = TimeToFormat(secondsLeft);
-        timer = new System.Threading.Timer(DecreaseTime, new AutoResetEvent(false), 1000, 1000);
-
+        timer = new System.Threading.Timer(DecreaseTime, new AutoResetEvent(false), Timeout.Infinite, Timeout.Infinite);
     }
     private string TimeToFormat(int seconds)
     {
@@ -18,6 +26,10 @@
     private async void DecreaseTime(Object stateInfo)
     {
         secondsLeft--;
+        if (secondsLeft == 0)
+        {
+            await TimeRanOut.InvokeAsync(OpponentSide);
+        }
         time = TimeToFormat(secondsLeft);
         await InvokeAsync(() => StateHasChanged());
     }
