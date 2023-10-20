@@ -141,6 +141,8 @@ public class Board
     {
         int index = WhiteToMove ? 0 : 1;
         Pawns[index].RemovePieceAtSquare(move.StartIndex);
+        int newPiece = Piece.Colour(Squares[move.StartIndex]);
+        Squares[move.StartIndex] = 0;
         int targetSquare = move.EndIndex;
         if (Squares[targetSquare] != Piece.None)
         {
@@ -150,17 +152,22 @@ public class Board
         {
             case 3:
                 Knights[index].AddPieceAtSquare(move.EndIndex);
+                newPiece += 3;
                 break;
             case 5:
                 Bishops[index].AddPieceAtSquare(move.EndIndex);
+                newPiece += 5;
                 break;
             case 6:
                 Rooks[index].AddPieceAtSquare(move.EndIndex);
+                newPiece += 6;
                 break;
             case 7:
                 Queens[index].AddPieceAtSquare(move.EndIndex);
+                newPiece += 7;
                 break;
         }
+        Squares[move.EndIndex] = newPiece;
     }
 
     private void CastleKing(Move move)

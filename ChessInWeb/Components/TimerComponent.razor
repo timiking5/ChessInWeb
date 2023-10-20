@@ -15,7 +15,7 @@
     private string time;
     protected override async Task OnInitializedAsync()
     {
-        secondsLeft = Util.ThirstySecondsMode;
+        secondsLeft = 5;
         time = TimeToFormat(secondsLeft);
         timer = new System.Threading.Timer(DecreaseTime, new AutoResetEvent(false), Timeout.Infinite, Timeout.Infinite);
     }
@@ -23,12 +23,13 @@
     {
         return $"{seconds / 60}:{seconds % 60}";
     }
-    private async void DecreaseTime(Object stateInfo)
+    public async void DecreaseTime(Object stateInfo)
     {
         secondsLeft--;
         if (secondsLeft == 0)
         {
-            await TimeRanOut.InvokeAsync(OpponentSide);
+            this.InvokeAsync(() => TimeRanOut.InvokeAsync(OpponentSide));
+            Stop();
         }
         time = TimeToFormat(secondsLeft);
         await InvokeAsync(() => StateHasChanged());
