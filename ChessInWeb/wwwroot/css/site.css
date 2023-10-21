@@ -36,6 +36,12 @@ body {
     background-color: #e6e345;
 }
 
+.chessboard {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .square img {
     margin-left: auto;
     margin-right: auto;

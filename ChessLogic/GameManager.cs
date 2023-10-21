@@ -53,9 +53,66 @@ public class GameManager
     {
         return _currentMoves.Count == 0 && _moveGenerator.InCheck;
     }
-    public bool CheckDraw()
+    public bool CheckCheck()
     {
-        return false;
+        return _currentMoves.Count > 0 && _moveGenerator.InCheck;
+
+    }
+    
+    public bool CheckStalemate()
+    {
+        return _currentMoves.Count == 0 && !_moveGenerator.InCheck;
+    }
+    public bool CheckInsufficientMaterial()
+    {
+        if (_board.Queens[0].Count > 0 || _board.Queens[1].Count > 0)
+        {
+            return false;
+        }
+        if (_board.Queens[0].Count > 0 || _board.Queens[1].Count > 0)
+        {
+            return false;
+        }
+        if (_board.Bishops[0].Count > 1 || _board.Bishops[1].Count > 1)
+        {  // 2 bishops checkmate is possible
+            return false;
+        }
+        if (_board.Knights[0].Count > 1 || _board.Knights[1].Count > 1)
+        {  // impossible to force checkmate, but a player can blunder it
+            return false;
+        }
+        if (_board.Pawns[0].Count > 0 || _board.Pawns[1].Count > 0)
+        {
+            return false;
+        }
+        if (_board.Bishops[0].Count > 0 && _board.Knights[0].Count > 0 ||
+            _board.Bishops[1].Count > 0 && _board.Knights[1].Count > 0)
+        {  // knight and bishop checkmate
+            return false;
+        }
+        return true;
+    }
+    public bool CheckFiftyMove()
+    {
+        return _board.FiftyMoveCounter >= 50;
+    }
+    public string ReturnGameState()
+    {
+        switch (true)
+        {
+            case true when CheckFiftyMove():
+                return "Fifty Move Draw.";
+            case true when CheckInsufficientMaterial():
+                return "Draw due to insufficient material.";
+            case true when CheckStalemate():
+                return "Stalemate.";
+            case true when CheckMate():
+                return "Checkmate!";
+            case true when CheckCheck():
+                return "Check!";
+            default:
+                return _board.WhiteToMove ? "White's move" : "Black's move";
+        }
     }
     public void MakeMove(Move move)
     {

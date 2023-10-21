@@ -39,7 +39,7 @@ public class MoveGenerator
         }
         if (inKnightCheck != -1 || inCheck != -1)
         {  // can either move king or take the attacking piece
-            moves.AddRange(TakeAttackingPiece(inKnightCheck));
+            moves.AddRange(TakeAttackingPiece(inKnightCheck == -1 ? inCheck : inKnightCheck));
         }
         if (inCheck != -1)
         { // If it is not a knight check, then we can cover king from check
@@ -232,7 +232,7 @@ public class MoveGenerator
                     new(pawn, pawn + 8 * coef, 6),
                 });
             }
-            }
+        }
         if (InBounds(pawn + leftAttack) && board.Squares[pawn + leftAttack] != Piece.None
             && !Piece.IsColour(board.Squares[pawn + leftAttack], Piece.Colour(board.Squares[pawn]))
             && PinnedCanMove(pinned, leftAttack, dir) && Math.Abs(pawn % 8 - (pawn + leftAttack) % 8) == 1)
@@ -515,7 +515,7 @@ public class MoveGenerator
     {
         foreach (var direction in Board.SlidingDirections)
         {
-            if (Math.Abs(direction) == 1 && difference > 8)
+            if (Math.Abs(direction) == 1 && Math.Abs(difference) >= 8)
             {
                 continue;
             }
@@ -559,7 +559,7 @@ public class MoveGenerator
         for (int i = 0; i < board.Queens[friendlyPieceInd].Count; i++)
         {
             int queen = board.Queens[friendlyPieceInd][i];
-            if (CanTakeAttackerSlidingPiece(queen, 4, 8, attackingPiece))
+            if (CanTakeAttackerSlidingPiece(queen, 0, 8, attackingPiece))
             {
                 moves.Add(new(queen, attackingPiece));
             }
@@ -592,22 +592,49 @@ public class MoveGenerator
     {
         int ind = whiteToMove ? 0 : 1;
         int coef = whiteToMove ? 1 : -1;
+        int endRow = whiteToMove ? 6 : 1;
         int leftAttack = 7 * coef, rightAttack = 9 * coef;
         List<Move> moves = new();
         for (int i = 0; i < board.Pawns[ind].Count; i++)
         {
             int pawn = board.Pawns[ind][i];
             if (pins.Where(x => x.Square == pawn).Count() != 0)
-            {  // there is no way pawn could move and take knight if it is smh pinned
+            {  // there is no way pawn could move and take the attacker if it is smh pinned
                 continue;
             }
             if (Math.Abs(pawn % 8 - (pawn + leftAttack) % 8) == 1 && pawn + leftAttack == attackingPiece)
             {
-                moves.Add(new Move(pawn, attackingPiece));
+                if (pawn / 8 != endRow)
+                {
+                    moves.Add(new(pawn, attackingPiece));
+                }
+                else
+                {
+                    moves.AddRange(new List<Move>()
+                    {
+                        new(pawn, attackingPiece, 3),
+                        new(pawn, attackingPiece, 4),
+                        new(pawn, attackingPiece, 5),
+                        new(pawn, attackingPiece, 6),
+                    });
+                }
             }
             if (Math.Abs(pawn % 8 - (pawn + rightAttack) % 8) == 1 && pawn + rightAttack == attackingPiece)
             {
-                moves.Add(new Move(pawn, attackingPiece));
+                if (pawn / 8 != endRow)
+                {
+                    moves.Add(new(pawn, attackingPiece));
+                }
+                else
+                {
+                    moves.AddRange(new List<Move>()
+                    {
+                        new(pawn, attackingPiece, 3),
+                        new(pawn, attackingPiece, 4),
+                        new(pawn, attackingPiece, 5),
+                        new(pawn, attackingPiece, 6),
+                    });
+                }
             }
         }
         return moves;
@@ -624,7 +651,7 @@ public class MoveGenerator
         for (int i = startIndex; i < endIndex; i++)
         {
             int dir = Board.SlidingDirections[i];
-            if (difference > 8 && Math.Abs(dir) == 1)
+            if (Math.Abs(difference) >= 8 && Math.Abs(dir) == 1)
             {
                 continue;
             }
@@ -711,10 +738,18 @@ public class MoveGenerator
             int piece = board.Pawns[attackingPieceInd][i];
             if (Math.Abs(piece % 8 - (piece + leftAttack) % 8) == 1)
             {
+                if (piece + leftAttack == kingSquare)
+                {
+                    inCheck = piece;
+                }
                 attackMap.Add(piece + leftAttack);
             }
             if (Math.Abs(piece % 8 - (piece + rightAttack) % 8) == 1)
             {
+                if (piece + rightAttack == kingSquare)
+                {
+                    inCheck = piece;
+                }
                 attackMap.Add(piece + rightAttack);
             }
         }

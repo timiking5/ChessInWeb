@@ -15,13 +15,13 @@
     private string time;
     protected override async Task OnInitializedAsync()
     {
-        secondsLeft = 5;
+        secondsLeft = Util.TenMinutesMode;
         time = TimeToFormat(secondsLeft);
         timer = new System.Threading.Timer(DecreaseTime, new AutoResetEvent(false), Timeout.Infinite, Timeout.Infinite);
     }
     private string TimeToFormat(int seconds)
     {
-        return $"{seconds / 60}:{seconds % 60}";
+        return $"{seconds / 60}:{SecondsToFormat(seconds % 60)}";
     }
     public async void DecreaseTime(Object stateInfo)
     {
@@ -41,5 +41,9 @@
     public void Start()
     {
         timer.Change(1000, 1000);
+    }
+    private string SecondsToFormat(int seconds)
+    {
+        return seconds < 10 ? $"0{seconds}" : seconds.ToString();
     }
 }

@@ -26,6 +26,7 @@
     protected override async Task OnInitializedAsync()
     {
         GameManager?.GetMoves();
+        informerMessage = GameManager?.ReturnGameState();
     }
     private string resources = "Icons/";
     private string IconSrc(int square)
@@ -67,6 +68,7 @@
             GameManager.GetMoves();
             StateHasChanged();
             informer.SwitchTimer();
+            informerMessage = GameManager.ReturnGameState();
             return;
         }
         ClearMeta();
