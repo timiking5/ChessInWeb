@@ -10,6 +10,8 @@
     public bool OpponentSide { get; set; } = false;
     [Parameter]
     public bool WhiteTimer { get; set; } = true;
+    [Parameter]
+    public bool Increment { get; set; } = 0;
     private System.Threading.Timer timer;
     private int secondsLeft;
     private string time;
@@ -36,6 +38,7 @@
     }
     public void Stop()
     {
+        secondsLeft += Increment;
         timer.Change(Timeout.Infinite, Timeout.Infinite);
     }
     public void Start()

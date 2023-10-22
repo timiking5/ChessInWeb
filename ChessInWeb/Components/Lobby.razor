@@ -1,5 +1,50 @@
-﻿<h3>Lobby</h3>
+﻿@inject NavigationManager NavigationManager
+
+<div class="lobby">
+    <div class="mb-3 rounded-1 p-3 bordered grey-color">
+        <div>
+            <button @onclick="NavigateToCreatePage" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Create New Game</button>
+        </div>
+    </div>
+    <div style="height:100px;" class="grey-color bordered rounded-1">
+        <div class="justify-content-center p-2">
+            Awaiting Opponent
+        </div>
+        <hr class="divider" />
+        <table class="table">
+            <tbody>
+                @foreach (var game in GameController.AwaitingGames)
+                {
+                    <tr>
+                        <th scope="col"><i class="bi bi-play-circle"></i></th>
+                        <th scope="col">Time Control: <i class="bi bi-alarm"></i> @ReturnTimeControl(game)</th>
+                        <th><a @onclick="(() => NavigateToAwaitingGame(game.Id))" class="btn btn-primary">Play</a></th>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
 
 @code {
-
+    private void NavigateToCreatePage()
+    {
+        NavigationManager.NavigateTo("Game/Create", true);
+    }
+    private void NavigateToAwaitingGame(long id)
+    {
+        NavigationManager.NavigateTo($"Game/StartGame/{id}", true);
+    }
+    private string ReturnTimeControl(Game game)
+    {
+        return $"{game.Minutes} + {game.Increment}";
+    }
+    private string ReturnAwaitingOpponent(Game game)
+    {
+        if (game.WhitePlayer is null)
+        {
+            return game.BlackPlayer.UserName;
+        }
+        return game.WhitePlayer.UserName;
+    }
 }

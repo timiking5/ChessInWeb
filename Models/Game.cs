@@ -23,5 +23,15 @@ public class Game
     [Required]
     public int TimeControl { get; set; }
     [Required]
-    public bool IsFinished { get; set; }
+    public int Increment { get; set; } = 0;
+    [Required]
+    public bool IsFinished { get; set; } = false;
+    [NotMapped]
+    public int Minutes
+    {
+        get
+        {
+            return TimeControl / 60;
+        }
+    }
 }

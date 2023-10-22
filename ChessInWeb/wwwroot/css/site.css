@@ -98,3 +98,19 @@ body {
 .black-dot {
     background-color: black;
 }
+
+.lobby {
+    width: 1000px;
+}
+.grey-color {
+    background-color: #f5f5f5;
+}
+
+.bordered {
+    border: 1px solid #ddd;
+}
+
+hr.divider {
+    margin: 0em;
+    border-width: 2px;
+}
