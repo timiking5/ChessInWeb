@@ -25,6 +25,8 @@ public class Board
     public PieceList[] Queens { get; set; }
     public PieceList[] Knights { get; set; }
     public PieceList[] Pawns { get; set; }
+    public Dictionary<long, int> HashedPositionsCount { get; private set; } = new();
+    public long CurrentPositionHash { get; private set; }
     public int EnPassantCol = -1;  // tells if there is an opportunity to En Passant
     private static Dictionary<char, int> pieceTypeFromSymbol = new Dictionary<char, int>
     {
@@ -86,6 +88,8 @@ public class Board
             col++;
         }
         ExtractMetaData(meta);
+        CurrentPositionHash = Squares.GetPositionHash();
+        HashedPositionsCount[CurrentPositionHash] = 1;
     }
 
     private void ExtractMetaData(string[] meta)
@@ -135,6 +139,13 @@ public class Board
         }
         PlysCounter++;
         FiftyMoveCounter = fmc ? 0 : FiftyMoveCounter + 0.5;
+        CurrentPositionHash = Squares.GetPositionHash();
+        if (HashedPositionsCount.ContainsKey(CurrentPositionHash))
+        {
+            HashedPositionsCount[CurrentPositionHash]++;
+            return;
+        }
+        HashedPositionsCount[CurrentPositionHash] = 1;
     }
 
     private void PromotePawn(Move move)

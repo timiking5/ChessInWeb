@@ -1,8 +1,10 @@
 ﻿<div class="informer">
     
-    <TimerComponent TimeRanOut="@TimeRanOut" WhiteTimer="@(WhiteSided ? false : true)" OpponentSide="true" @ref=opponentTimer></TimerComponent>
+    <TimerComponent TimeRanOut="@TimeRanOut" WhiteTimer="@(WhiteSided ? false : true)" OpponentSide="true" @ref=opponentTimer
+                    TimeControl="@TimeControl" Increment="@Increment"></TimerComponent>
     <div class="informer-content">@Message</div>
-    <TimerComponent TimeRanOut="@TimeRanOut" WhiteTimer="@(WhiteSided ? true : false)" OpponentSide="false" @ref=playerTimer></TimerComponent>
+    <TimerComponent TimeRanOut="@TimeRanOut" WhiteTimer="@(WhiteSided ? true : false)" OpponentSide="false" @ref=playerTimer
+                    TimeControl="@TimeControl" Increment="@Increment"></TimerComponent>
 </div>
 
 
@@ -16,6 +18,10 @@
     public EventCallback<bool> TimeRanOut { get; set; }
     [Parameter]
     public bool WhiteSided { get; set; } = true;
+    [Parameter]
+    public int TimeControl { get; set; }
+    [Parameter]
+    public int Increment { get; set; }
     private TimerComponent opponentTimer;
     private TimerComponent playerTimer;
     private bool isPlayersRunning;

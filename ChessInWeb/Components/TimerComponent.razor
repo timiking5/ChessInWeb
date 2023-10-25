@@ -11,13 +11,15 @@
     [Parameter]
     public bool WhiteTimer { get; set; } = true;
     [Parameter]
-    public bool Increment { get; set; } = 0;
+    public int Increment { get; set; } = 0;
+    [Parameter]
+    public int TimeControl { get; set; }
     private System.Threading.Timer timer;
     private int secondsLeft;
     private string time;
     protected override async Task OnInitializedAsync()
     {
-        secondsLeft = Util.TenMinutesMode;
+        secondsLeft = TimeControl * 60;
         time = TimeToFormat(secondsLeft);
         timer = new System.Threading.Timer(DecreaseTime, new AutoResetEvent(false), Timeout.Infinite, Timeout.Infinite);
     }

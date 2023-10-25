@@ -4,7 +4,7 @@ public class MoveGenerator
 {
     private Board board;
     private bool whiteToMove;
-    private int inCheck;
+    private int inCheck = -1;
     private bool inDoubleCheck;
     private int inKnightCheck = -1;
     private List<Pin> pins = new(1);

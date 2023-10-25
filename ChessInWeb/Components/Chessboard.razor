@@ -11,11 +11,12 @@
         }
     }
     </div>
-    <Informer WhiteSided=true TimeRanOut="@TimeRanOut" @bind-Message="informerMessage" @ref=informer></Informer>
+    <Informer WhiteSided=true TimeRanOut="@TimeRanOut" @bind-Message="informerMessage" @ref=informer
+              TimeControl="@GameObj.TimeControl" Increment="@GameObj.Increment"></Informer>
 </div>
 @code {
     [Parameter]
-    public GameManager? GameManager { get; set; }
+    public Game GameObj { get; set; }
     private string informerMessage = "Message from chessboard";
     private int rerenderCount = 0;
     private HashSet<int> availableSquares = new();
@@ -25,14 +26,14 @@
     private Informer informer;
     protected override async Task OnInitializedAsync()
     {
-        GameManager?.GetMoves();
-        informerMessage = GameManager?.ReturnGameState();
+        GameObj.GameManager?.GetMoves();
+        informerMessage = GameObj.GameManager?.ReturnGameState();
     }
-    private string resources = "Icons/";
+    private string resources = "/Icons/";
     private string IconSrc(int square)
     {
         string respond = "";
-        switch (Piece.PieceType(GameManager.Squares[square]))
+        switch (Piece.PieceType(GameObj.GameManager.Squares[square]))
         {
             case 1:
                 respond = "king";
@@ -55,27 +56,27 @@
             default:
                 return "";
         }
-        string color = Piece.Colour(GameManager.Squares[square]) == 8 ? "white" : "black";
+        string color = Piece.Colour(GameObj.GameManager.Squares[square]) == 8 ? "white" : "black";
         return resources + color + respond + ".png";
     }
     public void ManageClick(int id)
     {
         if (availableSquares.Contains(id))
         {
-            GameManager.MakeMove(GameManager.MovesStorage[currentSelected].Where(x => x.EndIndex == id).First());
+            GameObj.GameManager.MakeMove(GameObj.GameManager.MovesStorage[currentSelected].Where(x => x.EndIndex == id).First());
             CheckGameFinished();
             ClearMeta();
-            GameManager.GetMoves();
+            GameObj.GameManager.GetMoves();
             StateHasChanged();
             informer.SwitchTimer();
-            informerMessage = GameManager.ReturnGameState();
+            informerMessage = GameObj.GameManager.ReturnGameState();
             return;
         }
         ClearMeta();
-        if (GameManager.Squares[id] != Piece.None && GameManager.MovesStorage.ContainsKey(id))
+        if (GameObj.GameManager.Squares[id] != Piece.None && GameObj.GameManager.MovesStorage.ContainsKey(id))
         {
             currentSelected = id;
-            GameManager.MovesStorage[id].Select(x => x.EndIndex).ToList().ForEach(x => availableSquares.Add(x));
+            GameObj.GameManager.MovesStorage[id].Select(x => x.EndIndex).ToList().ForEach(x => availableSquares.Add(x));
             StateHasChanged();
             return;
         }

@@ -58,7 +58,10 @@ public class GameManager
         return _currentMoves.Count > 0 && _moveGenerator.InCheck;
 
     }
-    
+    public bool CheckThreeFoldRepition()
+    {
+        return _board.HashedPositionsCount[_board.CurrentPositionHash] >= 3;
+    }
     public bool CheckStalemate()
     {
         return _currentMoves.Count == 0 && !_moveGenerator.InCheck;
@@ -110,6 +113,8 @@ public class GameManager
                 return "Checkmate!";
             case true when CheckCheck():
                 return "Check!";
+            case true when CheckThreeFoldRepition():
+                return "Draw due to repition";
             default:
                 return _board.WhiteToMove ? "White's move" : "Black's move";
         }

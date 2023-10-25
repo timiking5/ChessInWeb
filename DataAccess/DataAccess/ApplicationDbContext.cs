@@ -28,5 +28,8 @@ public class ApplicationDbContext : IdentityDbContext
             .HasOne(x => x.Winner)
             .WithMany()
             .OnDelete(DeleteBehavior.NoAction);
+        modelBuilder.Entity<Game>().Property(m => m.WinnerId).IsRequired(false);
+        modelBuilder.Entity<Game>().Property(m => m.WhitePlayerId).IsRequired(false);
+        modelBuilder.Entity<Game>().Property(m => m.BlackPlayerId).IsRequired(false);
     }
 }
