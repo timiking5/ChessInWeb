@@ -28,13 +28,5 @@ public class Game
     [Required]
     public bool IsFinished { get; set; } = false;
     [NotMapped]
-    public int Minutes
-    {
-        get
-        {
-            return TimeControl / 60;
-        }
-    }
-    [NotMapped]
     public GameManager GameManager { get; set; }
 }

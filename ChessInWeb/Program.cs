@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Utility;
 using DataAccess.Repository.IRepository;
 using DataAccess.Repository;
+using ChessInWeb.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,5 +53,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapBlazorHub();
+app.MapHub<ChatHub>("/chathub");
+app.MapHub<ChessMovesHub>("/chessmoveshub");
 
 app.Run();

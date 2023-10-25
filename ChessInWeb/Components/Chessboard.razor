@@ -1,4 +1,10 @@
-﻿<div class="chessboard" disabled="@isDisabled">
+﻿@using ChessInWeb.Hubs;
+@using Microsoft.AspNetCore.SignalR.Client
+@using Microsoft.AspNetCore.Identity;
+@inject AuthenticationStateProvider GetAuthenticationStateAsync
+@inject NavigationManager NavManager
+@implements IDisposable
+<div class="chessboard" disabled="@isDisabled">
     <div class="squares">
     @for (int i = 63; i >= 0; i--)
     {
@@ -18,16 +24,33 @@
     [Parameter]
     public Game GameObj { get; set; }
     private string informerMessage = "Message from chessboard";
+    private string userId;
     private int rerenderCount = 0;
     private HashSet<int> availableSquares = new();
     private int currentSelected = -1;
     private int j = 7;
     private bool isDisabled = false;
     private Informer informer;
+    private HubConnection? hubConnection;
     protected override async Task OnInitializedAsync()
     {
         GameObj.GameManager?.GetMoves();
         informerMessage = GameObj.GameManager?.ReturnGameState();
+        hubConnection = new HubConnectionBuilder()
+        .WithUrl(NavManager.ToAbsoluteUri("/chessmoveshub"))
+        .WithAutomaticReconnect()
+        .Build();
+        var authState = await GetAuthenticationStateAsync.GetAuthenticationStateAsync();
+        
+        // ChessMovesHub.AddUserToGame()
+
+        hubConnection.On<Move>("ReceiveMessage", (move) =>
+        {
+            GameObj.GameManager.MakeMove(move);
+            InvokeAsync(StateHasChanged);
+        });
+
+        await hubConnection.StartAsync();
     }
     private string resources = "/Icons/";
     private string IconSrc(int square)
@@ -95,5 +118,9 @@
     {
         isDisabled = true;
         informer.StopTimers();
+    }
+    public void Dispose()
+    {
+        
     }
 }
