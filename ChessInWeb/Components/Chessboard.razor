@@ -6,7 +6,7 @@
 @implements IDisposable
 <div class="chessboard @(isDisabled ? "disabledelement" : "")">
     <div class="squares">
-        @if (userId == GameObj.WhitePlayerId)
+        @if (userId != GameObj.BlackPlayerId)
         {
             for (int i = 63; i >= 0; i--)
             {
@@ -50,6 +50,7 @@
     private HubConnection? hubConnection;
     protected override async Task OnInitializedAsync()
     {
+        // GameObj = GameController.GamesDictionary[GameObj.Id];
         GameObj.GameManager?.GetMoves();
         informerMessage = GameObj.GameManager?.ReturnGameState();
         hubConnection = new HubConnectionBuilder()
@@ -121,17 +122,26 @@
             return;
         }
     }
-    public void MakeMove(Move move)
+    public async void MakeMove(Move move)
     {
         GameObj.GameManager.MakeMove(move);
         GameObj.GameManager.GetMoves();
         informerMessage = GameObj.GameManager.ReturnGameState();
         ClearMeta();
         CheckGameFinished();
-        StateHasChanged();
         informer.SwitchTimer();
         EnableBoard();
-
+        StateHasChanged();
+        await SynchronizeMove(move);
+    }
+    // Makes call to hub and controller
+    private async Task SynchronizeMove(Move move)
+    {
+        GameController.MakeMoveOnBoard(GameObj.Id, move);
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("SendMove", GameObj.Id, userId, move);
+        }
     }
     private void ClearMeta()
     {

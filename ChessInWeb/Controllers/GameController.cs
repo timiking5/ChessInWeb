@@ -3,7 +3,6 @@ using DataAccess.Repository.IRepository;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
-
 namespace ChessInWeb.Controllers;
 
 [Authorize]
@@ -65,6 +64,8 @@ public class GameController : Controller
         {
             game.BlackPlayerId = userId;
         }
+        AwaitingGames.Remove(game);
+        GamesDictionary[game.Id] = game;
         return RedirectToAction("ChessBoard", new { id });
     }
     public IActionResult ChessBoard(long id)
@@ -77,15 +78,14 @@ public class GameController : Controller
         }
         return NotFound();
     }
-    #region API CALLS
-    public IActionResult MakeMoveOnBoard(long gameId, Move move)
+    #region STATIC CALLS
+    public static void MakeMoveOnBoard(long gameId, Move move)
     {
         if (!GamesDictionary.ContainsKey(gameId))
         {
-            return NotFound();
+            return;
         }
         GamesDictionary[gameId].GameManager.MakeMove(move);
-        return Ok();
     }
     #endregion
 }
