@@ -39,6 +39,7 @@
 @code {
     [Parameter]
     public Game GameObj { get; set; }
+    private long gameId { get; set; }
     private string informerMessage = "Message from chessboard";
     private string userId;
     private int rerenderCount = 0;
@@ -50,7 +51,8 @@
     private HubConnection? hubConnection;
     protected override async Task OnInitializedAsync()
     {
-        // GameObj = GameController.GamesDictionary[GameObj.Id];
+        gameId = GameObj.Id;
+        //GameObj = GameController.GamesDictionary[gameId];
         GameObj.GameManager?.GetMoves();
         informerMessage = GameObj.GameManager?.ReturnGameState();
         hubConnection = new HubConnectionBuilder()
@@ -61,9 +63,10 @@
         userId = authState.User.FindFirst(ClaimTypes.NameIdentifier).Value;
         ChessMovesHub.AddUserToGame(userId, GameObj.Id);
         // j = userId == GameObj.BlackPlayerId ? -7 : 7;
-        hubConnection.On<Move>("ReceiveMessage", (move) =>
+        hubConnection.On<Move>("RecieveMove", (move) =>
         {
             MakeMove(move);
+            InvokeAsync(StateHasChanged);
         });
         await hubConnection.StartAsync();
         EnableBoard();
@@ -131,8 +134,9 @@
         CheckGameFinished();
         informer.SwitchTimer();
         EnableBoard();
-        StateHasChanged();
         await SynchronizeMove(move);
+        InvokeAsync(StateHasChanged);
+        GameObj = GameController.GamesDictionary[gameId];
     }
     // Makes call to hub and controller
     private async Task SynchronizeMove(Move move)
