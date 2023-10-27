@@ -114,3 +114,7 @@ hr.divider {
     margin: 0em;
     border-width: 2px;
 }
+
+.disabledelement {
+    pointer-events: none;
+}

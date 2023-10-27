@@ -7,6 +7,13 @@ public class GameManager
     private List<Move> _currentMoves;
     public Dictionary<int, List<Move>> MovesStorage { get; private set; }
     public int[] Squares { get; private set; }
+    public bool WhiteToMove
+    {
+        get
+        {
+            return _board.WhiteToMove;
+        }
+    }
     public bool InCheck {
         get
         {

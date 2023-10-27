@@ -388,9 +388,8 @@ public class MoveGenerator
         List<Move> moves = new();
         int kingSquare = whiteToMove ? board.KingSquares[0] : board.KingSquares[1];
         int difference = inCheck - kingSquare;
-        int attackingDir = -100;
         // Generate all squares where a piece can block the attack
-        var squaresToBlock = SquaresToBlock(kingSquare, difference, attackingDir);
+        var squaresToBlock = SquaresToBlock(kingSquare, difference, inCheck);
         int index = whiteToMove ? 0 : 1;
         for (int i = 0; i < board.Bishops[index].Count; i++)
         {
@@ -511,11 +510,12 @@ public class MoveGenerator
         return moves;
     }
 
-    private HashSet<int> SquaresToBlock(int kingSquare, int difference, int attackingDir)
+    private HashSet<int> SquaresToBlock(int kingSquare, int difference, int attackingPiece)
     {
+        int attackingDir = 0;
         foreach (var direction in Board.SlidingDirections)
         {
-            if (Math.Abs(direction) == 1 && Math.Abs(difference) >= 8)
+            if (kingSquare / 8 != attackingPiece / 8 && Math.Abs(direction) == 1)
             {
                 continue;
             }
@@ -651,7 +651,7 @@ public class MoveGenerator
         for (int i = startIndex; i < endIndex; i++)
         {
             int dir = Board.SlidingDirections[i];
-            if (Math.Abs(difference) >= 8 && Math.Abs(dir) == 1)
+            if (piece / 8 != attackingPiece / 8 && Math.Abs(dir) == 1)
             {
                 continue;
             }

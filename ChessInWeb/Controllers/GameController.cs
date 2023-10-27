@@ -1,5 +1,6 @@
 ﻿using ChessInWeb.Components;
 using DataAccess.Repository.IRepository;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
@@ -50,11 +51,24 @@ public class GameController : Controller
     }
     public IActionResult StartGame(long id)
     {
-        return RedirectToAction("ChessBoard");
+        var game = AwaitingGames.Where(x => x.Id == id).FirstOrDefault();
+        if (game is null)
+        {
+            RedirectToAction("Index", "Home");
+        }
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (game.WhitePlayerId is null)
+        {
+            game.WhitePlayerId = userId;
+        }
+        else
+        {
+            game.BlackPlayerId = userId;
+        }
+        return RedirectToAction("ChessBoard", new { id });
     }
     public IActionResult ChessBoard(long id)
     {
-        
         if (GamesDictionary.ContainsKey(id) || AwaitingGames.Where(x => x.Id == id).Any())
         {
             Game game;
@@ -63,4 +77,15 @@ public class GameController : Controller
         }
         return NotFound();
     }
+    #region API CALLS
+    public IActionResult MakeMoveOnBoard(long gameId, Move move)
+    {
+        if (!GamesDictionary.ContainsKey(gameId))
+        {
+            return NotFound();
+        }
+        GamesDictionary[gameId].GameManager.MakeMove(move);
+        return Ok();
+    }
+    #endregion
 }

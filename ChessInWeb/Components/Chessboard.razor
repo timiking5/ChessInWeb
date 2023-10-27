@@ -4,18 +4,34 @@
 @inject AuthenticationStateProvider GetAuthenticationStateAsync
 @inject NavigationManager NavManager
 @implements IDisposable
-<div class="chessboard" disabled="@isDisabled">
+<div class="chessboard @(isDisabled ? "disabledelement" : "")">
     <div class="squares">
-    @for (int i = 63; i >= 0; i--)
-    {
-        int s = i - j;
-        <Square @bind-Rerender="@rerenderCount" IconSrc="@IconSrc(s)" IdNum="@s" Selected="@availableSquares.Contains(s)" HandleClick="@ManageClick"></Square>
-        j -= 2;
-        if (j < -7)
+        @if (userId == GameObj.WhitePlayerId)
         {
-            j = 7;
+            for (int i = 63; i >= 0; i--)
+            {
+                int s = i - j;
+                    <Square @bind-Rerender="@rerenderCount" IconSrc="@IconSrc(s)" IdNum="@s" Selected="@availableSquares.Contains(s)" HandleClick="@ManageClick"></Square>
+                    j -= 2;
+                    if (j < -7)
+                    {
+                        j = 7;
+                    }
+                }
+            }
+        else
+        {
+            for (int i = 0; i < 64; i++)
+            {
+                int s = i - i % 8 + 7 - i % 8;
+                <Square @bind-Rerender="@rerenderCount" IconSrc="@IconSrc(s)" IdNum="@s" Selected="@availableSquares.Contains(s)" HandleClick="@ManageClick"></Square>
+                j -= 2;
+                if (j < 0)
+                {
+                    j = 7;
+                }
+            }
         }
-    }
     </div>
     <Informer WhiteSided=true TimeRanOut="@TimeRanOut" @bind-Message="informerMessage" @ref=informer
               TimeControl="@GameObj.TimeControl" Increment="@GameObj.Increment"></Informer>
@@ -41,16 +57,15 @@
         .WithAutomaticReconnect()
         .Build();
         var authState = await GetAuthenticationStateAsync.GetAuthenticationStateAsync();
-        
-        // ChessMovesHub.AddUserToGame()
-
+        userId = authState.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        ChessMovesHub.AddUserToGame(userId, GameObj.Id);
+        // j = userId == GameObj.BlackPlayerId ? -7 : 7;
         hubConnection.On<Move>("ReceiveMessage", (move) =>
         {
-            GameObj.GameManager.MakeMove(move);
-            InvokeAsync(StateHasChanged);
+            MakeMove(move);
         });
-
         await hubConnection.StartAsync();
+        EnableBoard();
     }
     private string resources = "/Icons/";
     private string IconSrc(int square)
@@ -82,17 +97,19 @@
         string color = Piece.Colour(GameObj.GameManager.Squares[square]) == 8 ? "white" : "black";
         return resources + color + respond + ".png";
     }
+    private void EnableBoard()
+    {
+        isDisabled = !((GameObj.GameManager.WhiteToMove && userId == GameObj.WhitePlayerId ||
+                    !GameObj.GameManager.WhiteToMove && userId == GameObj.BlackPlayerId)
+                    && GameObj.WhitePlayerId is not null && GameObj.BlackPlayerId is not null);
+        StateHasChanged();
+    }
     public void ManageClick(int id)
     {
         if (availableSquares.Contains(id))
         {
-            GameObj.GameManager.MakeMove(GameObj.GameManager.MovesStorage[currentSelected].Where(x => x.EndIndex == id).First());
-            CheckGameFinished();
-            ClearMeta();
-            GameObj.GameManager.GetMoves();
-            StateHasChanged();
-            informer.SwitchTimer();
-            informerMessage = GameObj.GameManager.ReturnGameState();
+            var move = GameObj.GameManager.MovesStorage[currentSelected].Where(x => x.EndIndex == id).First();
+            MakeMove(move);
             return;
         }
         ClearMeta();
@@ -104,6 +121,18 @@
             return;
         }
     }
+    public void MakeMove(Move move)
+    {
+        GameObj.GameManager.MakeMove(move);
+        GameObj.GameManager.GetMoves();
+        informerMessage = GameObj.GameManager.ReturnGameState();
+        ClearMeta();
+        CheckGameFinished();
+        StateHasChanged();
+        informer.SwitchTimer();
+        EnableBoard();
+
+    }
     private void ClearMeta()
     {
         rerenderCount++;
@@ -112,7 +141,21 @@
     }
     private void CheckGameFinished()
     {
-
+        if (informerMessage.Contains("Draw") || informerMessage.Contains("mate"))
+        {
+            FinishGame();
+        }
+    }
+    private void FinishGame(bool onTime = false)
+    {
+        GameObj.IsFinished = true;
+        if (informerMessage.Contains("Checkmate") || onTime)
+        {
+            GameObj.WinnerId = GameObj.GameManager.WhiteToMove ? GameObj.BlackPlayerId : GameObj.WhitePlayerId;
+        }
+        // api call to controller
+        informer.StopTimers();
+        isDisabled = true;
     }
     public void TimeRanOut(bool white)
     {
@@ -121,6 +164,6 @@
     }
     public void Dispose()
     {
-        
+        ChessMovesHub.RemoveUserFromGame(userId, GameObj.Id);
     }
 }
