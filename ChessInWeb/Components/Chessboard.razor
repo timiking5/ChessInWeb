@@ -51,17 +51,20 @@
     private HubConnection? hubConnection;
     protected override async Task OnInitializedAsync()
     {
-        gameId = GameObj.Id;
-        //GameObj = GameController.GamesDictionary[gameId];
+        // gameId = GameObj.Id;
+        // GameObj = GameController.GamesDictionary[gameId];
         GameObj.GameManager?.GetMoves();
         informerMessage = GameObj.GameManager?.ReturnGameState();
+
         hubConnection = new HubConnectionBuilder()
         .WithUrl(NavManager.ToAbsoluteUri("/chessmoveshub"))
         .WithAutomaticReconnect()
         .Build();
+
         var authState = await GetAuthenticationStateAsync.GetAuthenticationStateAsync();
         userId = authState.User.FindFirst(ClaimTypes.NameIdentifier).Value;
         ChessMovesHub.AddUserToGame(userId, GameObj.Id);
+
         // j = userId == GameObj.BlackPlayerId ? -7 : 7;
         hubConnection.On<Move>("RecieveMove", (move) =>
         {
@@ -113,7 +116,7 @@
         if (availableSquares.Contains(id))
         {
             var move = GameObj.GameManager.MovesStorage[currentSelected].Where(x => x.EndIndex == id).First();
-            MakeMove(move);
+            SynchronizeMove(move);
             return;
         }
         ClearMeta();
@@ -134,9 +137,8 @@
         CheckGameFinished();
         informer.SwitchTimer();
         EnableBoard();
-        await SynchronizeMove(move);
         InvokeAsync(StateHasChanged);
-        GameObj = GameController.GamesDictionary[gameId];
+        // GameObj = GameController.GamesDictionary[gameId];
     }
     // Makes call to hub and controller
     private async Task SynchronizeMove(Move move)
@@ -144,7 +146,7 @@
         GameController.MakeMoveOnBoard(GameObj.Id, move);
         if (hubConnection is not null)
         {
-            await hubConnection.SendAsync("SendMove", GameObj.Id, userId, move);
+            await hubConnection.SendAsync("SendMove", GameObj.Id, move);
         }
     }
     private void ClearMeta()

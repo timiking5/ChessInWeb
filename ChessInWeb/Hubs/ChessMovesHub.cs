@@ -1,21 +1,22 @@
-﻿using Microsoft.Identity.Client;
+﻿using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Identity.Client;
 
 namespace ChessInWeb.Hubs;
 
 public class ChessMovesHub : Hub
 {
     public static Dictionary<long, List<string>> gameToUsers = new();
-    public Task SendMove(long gameId, string requesterId, Move move)
+    public Task SendMove(long gameId, Move move)
     {
+        List<string> users = new()
+        {
+            "TIMIKING5", "TIMIKING6"
+        };
         if (gameToUsers.ContainsKey(gameId))
         {
-            gameToUsers[gameId].ForEach(userId =>
+            users.ForEach(userId =>
             {
-                if (userId == requesterId)
-                {
-                    return;
-                }
-                Clients.User(userId).SendAsync("RecieveMove", move);
+                Clients.User(userId).SendAsync("RecieveMove", move).GetAwaiter().GetResult();
             });
         }
         return Task.CompletedTask;

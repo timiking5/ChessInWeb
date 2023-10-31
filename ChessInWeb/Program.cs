@@ -6,6 +6,8 @@ using Utility;
 using DataAccess.Repository.IRepository;
 using DataAccess.Repository;
 using ChessInWeb.Hubs;
+using ChessInWeb.Service;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -25,6 +27,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = $"/Identity/Account/AccessDenied";
 });
 
+// builder.Services.AddSingleton<IUserIdProvider, UserIdProvider>();
 builder.Services.AddSingleton<IEmailSender, EmailSender>();
 builder.Services.AddScoped<IGameRepository, GameRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
