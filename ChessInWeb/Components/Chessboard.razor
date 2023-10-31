@@ -63,15 +63,19 @@
 
         var authState = await GetAuthenticationStateAsync.GetAuthenticationStateAsync();
         userId = authState.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-        ChessMovesHub.AddUserToGame(userId, GameObj.Id);
-
         // j = userId == GameObj.BlackPlayerId ? -7 : 7;
-        hubConnection.On<Move>("RecieveMove", (move) =>
+        hubConnection.On<int, int, int>("RecieveMove", (a, b, c) =>
         {
+            Move move = new(a, b, c);
             MakeMove(move);
             InvokeAsync(StateHasChanged);
         });
         await hubConnection.StartAsync();
+
+        if (hubConnection is not null)
+        {
+            hubConnection.SendAsync("AddConnectionToGame", GameObj.Id).GetAwaiter().GetResult();
+        }
         EnableBoard();
     }
     private string resources = "/Icons/";
@@ -109,7 +113,7 @@
         isDisabled = !((GameObj.GameManager.WhiteToMove && userId == GameObj.WhitePlayerId ||
                     !GameObj.GameManager.WhiteToMove && userId == GameObj.BlackPlayerId)
                     && GameObj.WhitePlayerId is not null && GameObj.BlackPlayerId is not null);
-        StateHasChanged();
+        InvokeAsync(StateHasChanged);
     }
     public void ManageClick(int id)
     {
@@ -146,7 +150,7 @@
         GameController.MakeMoveOnBoard(GameObj.Id, move);
         if (hubConnection is not null)
         {
-            await hubConnection.SendAsync("SendMove", GameObj.Id, move);
+            await hubConnection.SendAsync("SendMove", GameObj.Id, move.StartIndex, move.EndIndex, move.MoveFlag);
         }
     }
     private void ClearMeta()
@@ -180,6 +184,9 @@
     }
     public void Dispose()
     {
-        ChessMovesHub.RemoveUserFromGame(userId, GameObj.Id);
+        if (hubConnection is not null)
+        {
+            hubConnection.SendAsync("RemoveConnectionFromGame", GameObj.Id).GetAwaiter().GetResult();
+        }
     }
 }

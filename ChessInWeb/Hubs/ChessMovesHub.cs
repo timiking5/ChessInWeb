@@ -5,37 +5,38 @@ namespace ChessInWeb.Hubs;
 
 public class ChessMovesHub : Hub
 {
-    public static Dictionary<long, List<string>> gameToUsers = new();
-    public Task SendMove(long gameId, Move move)
+    public static Dictionary<long, List<string>> gameToConnections = new();
+    public async Task SendMove(long gameId, int startIndex, int endIndex, int moveFlag)
     {
-        List<string> users = new()
+        if (gameToConnections.ContainsKey(gameId))
         {
-            "TIMIKING5", "TIMIKING6"
-        };
-        if (gameToUsers.ContainsKey(gameId))
-        {
-            users.ForEach(userId =>
+            gameToConnections[gameId].ForEach(connId =>
             {
-                Clients.User(userId).SendAsync("RecieveMove", move).GetAwaiter().GetResult();
+                Clients.Client(connId).SendAsync("RecieveMove", startIndex, endIndex, moveFlag).GetAwaiter().GetResult();
             });
+        }
+    }
+    public Task AddConnectionToGame(long gameId)
+    {
+        if (gameToConnections.ContainsKey(gameId))
+        {
+            gameToConnections[gameId].Add(Context.ConnectionId);
+            return Task.CompletedTask;
+        }
+        gameToConnections[gameId] = new() { Context.ConnectionId };
+        return Task.CompletedTask;
+    }
+    public Task RemoveConnectionFromGame(long gameId)
+    {
+        try
+        {
+            gameToConnections[gameId].Remove(Context.ConnectionId);
+        }
+        catch (Exception)
+        {
+            // maybe log exception in future
         }
         return Task.CompletedTask;
     }
-    public static void AddUserToGame(string userId, long gameId)
-    {
-        if (gameToUsers.ContainsKey(gameId))
-        {
-            gameToUsers[gameId].Add(userId);
-            return;
-        }
-        gameToUsers[gameId] = new() { userId };
-    }
-    public static void RemoveUserFromGame(string userId, long gameId)
-    {
-        gameToUsers[gameId].Remove(userId);
-        if (gameToUsers[gameId].Count == 0)
-        {
-            gameToUsers.Remove(gameId);
-        }
-    }
+    
 }
