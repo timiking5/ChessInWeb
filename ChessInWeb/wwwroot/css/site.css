@@ -117,4 +117,5 @@ hr.divider {
 
 .disabledelement {
     pointer-events: none;
+    opacity: 0.5;
 }

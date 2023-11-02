@@ -46,6 +46,7 @@ public class GameController : Controller
         _unitOfWork.Game.Create(game);
         _unitOfWork.Save();
         AwaitingGames.Add(game);
+        GamesDictionary[game.Id] = game;
         return RedirectToAction("ChessBoard", new { game.Id });
     }
     public IActionResult StartGame(long id)
