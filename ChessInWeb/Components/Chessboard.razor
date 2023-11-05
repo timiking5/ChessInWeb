@@ -53,9 +53,6 @@
     protected override async Task OnInitializedAsync()
     {
         gameManager = GameObj.GameManager;
-        gameManager.GetMoves();
-        informerMessage = gameManager.ReturnGameState();
-
         hubConnection = new HubConnectionBuilder()
         .WithUrl(NavManager.ToAbsoluteUri("/chessmoveshub"))
         .WithAutomaticReconnect()
@@ -76,6 +73,9 @@
         {
             hubConnection.SendAsync("AddConnectionToGame", GameObj.Id).GetAwaiter().GetResult();
         }
+        gameManager = GameController.GamesDictionary[GameObj.Id].GameManager;
+        gameManager.GetMoves();
+        informerMessage = gameManager.ReturnGameState();
         EnableBoard();
     }
     protected override void OnParametersSet()
@@ -185,6 +185,7 @@
     {
         isDisabled = true;
         informer.StopTimers();
+        FinishGame(true);
     }
     public void Dispose()
     {
