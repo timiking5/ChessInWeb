@@ -3,6 +3,7 @@
 @using Microsoft.AspNetCore.Identity;
 @inject AuthenticationStateProvider GetAuthenticationStateAsync
 @inject NavigationManager NavManager
+@inject IJSRuntime JS
 @implements IDisposable
 <div class="chessboard @(isDisabled ? "disabledelement" : "")">
     <div class="squares">
@@ -36,6 +37,7 @@
     <Informer WhiteSided=true TimeRanOut="@TimeRanOut" @bind-Message="informerMessage" @ref=informer
               TimeControl="@GameObj.TimeControl" Increment="@GameObj.Increment"></Informer>
 </div>
+<input type="hidden" runat="server" id="promotionType" @bind-value=promotionType/>
 @code {
     [Parameter]
     public Game GameObj { get; set; }
@@ -43,6 +45,7 @@
     private GameManager gameManager;
     private string informerMessage = "Message from chessboard";
     private string userId;
+    private int promotionType = 3;
     private int rerenderCount = 0;
     private HashSet<int> availableSquares = new();
     private int currentSelected = -1;
@@ -52,7 +55,7 @@
     private HubConnection? hubConnection;
     protected override async Task OnInitializedAsync()
     {
-        gameManager = GameObj.GameManager;
+        gameManager = GameObj.GameManager;  // necessary for rendering
         hubConnection = new HubConnectionBuilder()
         .WithUrl(NavManager.ToAbsoluteUri("/chessmoveshub"))
         .WithAutomaticReconnect()
@@ -73,6 +76,7 @@
         {
             hubConnection.SendAsync("AddConnectionToGame", GameObj.Id).GetAwaiter().GetResult();
         }
+        // necessary for accurate logic
         gameManager = GameController.GamesDictionary[GameObj.Id].GameManager;
         gameManager.GetMoves();
         informerMessage = gameManager.ReturnGameState();
@@ -120,12 +124,22 @@
                     && GameObj.WhitePlayerId is not null && GameObj.BlackPlayerId is not null);
         InvokeAsync(StateHasChanged);
     }
-    public void ManageClick(int id)
+    public async void ManageClick(int id)
     {
         if (availableSquares.Contains(id))
         {
-            var move = gameManager.MovesStorage[currentSelected].Where(x => x.EndIndex == id).First();
-            SynchronizeMove(move);
+            var moves = gameManager.MovesStorage[currentSelected].Where(x => x.EndIndex == id).ToList();
+            Move move;
+            if (moves.Count < 4)
+            {
+                move = moves.First();
+            }
+            else
+            {
+                int promType = await JS.InvokeAsync<int>("choosePromotionType");
+                move = moves.Where(x => x.MoveFlag == promType).First();
+            }
+            await SynchronizeMove(move);
             return;
         }
         ClearMeta();
@@ -137,7 +151,7 @@
             return;
         }
     }
-    public async void MakeMove(Move move)
+    public void MakeMove(Move move)
     {
         // gameManager.MakeMove(move);
         gameManager.GetMoves();

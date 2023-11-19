@@ -41,7 +41,6 @@ public class GameManager
         MovesToFormat();
         return _currentMoves;
     }
-
     private void MovesToFormat()
     {
         MovesStorage.Clear();

@@ -161,19 +161,19 @@ public class Board
         }
         switch (move.MoveFlag)
         {
-            case 3:
+            case 4:
                 Knights[index].AddPieceAtSquare(move.EndIndex);
                 newPiece += 3;
                 break;
-            case 5:
+            case 6:
                 Bishops[index].AddPieceAtSquare(move.EndIndex);
                 newPiece += 5;
                 break;
-            case 6:
+            case 5:
                 Rooks[index].AddPieceAtSquare(move.EndIndex);
                 newPiece += 6;
                 break;
-            case 7:
+            case 3:
                 Queens[index].AddPieceAtSquare(move.EndIndex);
                 newPiece += 7;
                 break;
