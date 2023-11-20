@@ -66,9 +66,7 @@
 
         hubConnection.On<int, int, int>("RecieveMove", (a, b, c) =>
         {
-            Move move = new(a, b, c);
-            MakeMove(move);
-            InvokeAsync(StateHasChanged);
+            RecievedMove(a, b, c);
         });
         await hubConnection.StartAsync();
 
@@ -82,10 +80,18 @@
         informerMessage = gameManager.ReturnGameState();
         EnableBoard();
     }
+    private void RecievedMove(int a, int b, int c)
+    {
+        Move move = new(a, b, c);
+        MakeMove(move);    
+        InvokeAsync(StateHasChanged);
+    }
     protected override void OnParametersSet()
     {
+        GameObj = GameController.GamesDictionary[GameObj.Id];
         gameManager = GameController.GamesDictionary[GameObj.Id].GameManager;
         gameManager.GetMoves();
+        EnableBoard();
     }
     private string resources = "/Icons/";
     private string IconSrc(int square)
@@ -153,7 +159,6 @@
     }
     public void MakeMove(Move move)
     {
-        // gameManager.MakeMove(move);
         gameManager.GetMoves();
         informerMessage = gameManager.ReturnGameState();
         ClearMeta();
@@ -191,7 +196,11 @@
         {
             GameObj.WinnerId = GameObj.GameManager.WhiteToMove ? GameObj.BlackPlayerId : GameObj.WhitePlayerId;
         }
-        // call to controller
+        if (GameObj.WinnerId is null)
+        {
+            GameObj.WinnerId = "Draw";
+        }
+        NavManager.NavigateTo($"/Game/finishgame?gameid={GameObj.Id}&winnerid={GameObj.WinnerId}", true);
         informer.StopTimers();
         isDisabled = true;
     }

@@ -1,4 +1,5 @@
-﻿@inject NavigationManager NavigationManager
+﻿@using Microsoft.AspNetCore.SignalR.Client;
+@inject NavigationManager NavigationManager
 
 <div class="lobby">
     <div class="mb-3 rounded-1 p-3 bordered grey-color">
@@ -26,7 +27,25 @@
     </div>
 </div>
 
+<input hidden @bind-value=text />
+
 @code {
+    private string text = "text";
+    private HubConnection? hubConnection;
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+        .WithUrl(NavigationManager.ToAbsoluteUri("/lobbyhub"))
+        .WithAutomaticReconnect()
+        .Build();
+
+        hubConnection.On("ReceiveGame", () =>
+        {
+            TextChange();
+            InvokeAsync(StateHasChanged);
+        });
+        await hubConnection.StartAsync();
+    }
     private void NavigateToCreatePage()
     {
         NavigationManager.NavigateTo("Game/Create", true);
@@ -46,5 +65,9 @@
             return game.BlackPlayer.UserName;
         }
         return game.WhitePlayer.UserName;
+    }
+    private void TextChange()
+    {
+        text = Guid.NewGuid().ToString();
     }
 }

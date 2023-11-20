@@ -55,7 +55,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapBlazorHub();
-app.MapHub<ChatHub>("/chathub");
+app.MapHub<LobbyHub>("/lobbyhub");
 app.MapHub<ChessMovesHub>("/chessmoveshub");
 
 app.Run();
